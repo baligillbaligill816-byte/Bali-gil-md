@@ -1,170 +1,129 @@
-// autoreact.js - Auto React Command for MD Bot
+// autoreact.js - Auto React Command for MD Bot (Final Version)
+// This version defaults to using a variety of emojis for different messages.
 
 /**
  * Main command function for managing auto-reaction settings.
- * @param {Object} sock - Baileys socket instance
- * @param {string} from - Remote JID
- * @param {Object} msg - The message object
- * @param {boolean} isAdmin - Whether the sender is an admin
- * @param {Object} session - The session object for the current chat
- * @param {Array} args - Command arguments
  */
 async function autoreactsCommand(sock, from, msg, isAdmin, session, args = []) {
-    // Check if user is admin/owner
     if (!isAdmin) {
         return await sock.sendMessage(from, { 
             text: "❌ Only group admins can use this command." 
         }, { quoted: msg });
     }
 
-    // Initialize session if not exists
-    if (!session.autoReact) {
+    // Initialize session if not exists or if structure is old
+    if (!session.autoReact || typeof session.autoReact.mode === 'undefined') {
         session.autoReact = {
             enabled: false,
-            defaultEmoji: '❤️',
-            emojis: ['✅', '❤️', '👏', '🔥', '🎉', '💕', '💯', '😡'],
-            reactions: {}
+            mode: 'random', // Default to random for variety
+            emojis: ['✅', '❤️', '👏', '🔥', '🎉', '💕', '💯', '😡', '✨', '🚀', '😂', '👀', '👍', '🌟', '💎', '🎈'],
+            reactions: {}, // Keyword specific
+            rotatingIndex: 0
         };
     }
 
     const action = args[0]?.toLowerCase();
-    const reactionEmoji = args[1] || '❤️'; // Default emoji if not specified
 
     if (action === 'on') {
         session.autoReact.enabled = true;
-        session.autoReact.defaultEmoji = reactionEmoji;
-        await sock.sendMessage(from, { 
-            text: `✅ Auto-React Enabled!\nDefault reaction: ${reactionEmoji}` 
-        }, { quoted: msg });
+        // If user provides a specific emoji, use that as default, otherwise stay in random mode
+        if (args[1] && !['random', 'rotating'].includes(args[1].toLowerCase())) {
+            session.autoReact.mode = 'default';
+            session.autoReact.defaultEmoji = args[1];
+            await sock.sendMessage(from, { 
+                text: `✅ Auto-React Enabled!\nMode: Fixed Emoji (${args[1]})` 
+            }, { quoted: msg });
+        } else {
+            session.autoReact.mode = args[1]?.toLowerCase() === 'rotating' ? 'rotating' : 'random';
+            await sock.sendMessage(from, { 
+                text: `✅ Auto-React Enabled!\nMode: ${session.autoReact.mode.toUpperCase()} (Using all emojis for variety)` 
+            }, { quoted: msg });
+        }
     } 
     else if (action === 'off') {
         session.autoReact.enabled = false;
-        await sock.sendMessage(from, { 
-            text: "❌ Auto-React Disabled!" 
-        }, { quoted: msg });
+        await sock.sendMessage(from, { text: "❌ Auto-React Disabled!" }, { quoted: msg });
     } 
-    else if (action === 'set') {
-        // Set specific emoji for a word/keyword
-        const keyword = args[1]?.toLowerCase();
-        const emoji = args[2] || '❤️';
-        if (!keyword) {
-            return await sock.sendMessage(from, { 
-                text: "❌ Usage: .autoreact set [keyword] [emoji]" 
-            }, { quoted: msg });
-        }
-        session.autoReact.reactions[keyword] = emoji;
-        await sock.sendMessage(from, { 
-            text: `✅ Reaction set: "${keyword}" → ${emoji}` 
-        }, { quoted: msg });
+    else if (action === 'add') {
+        // Add a new emoji to the pool
+        const newEmoji = args[1];
+        if (!newEmoji) return await sock.sendMessage(from, { text: "❌ Usage: .autoreact add [emoji]" }, { quoted: msg });
+        session.autoReact.emojis.push(newEmoji);
+        await sock.sendMessage(from, { text: `✅ Added ${newEmoji} to the emoji pool.` }, { quoted: msg });
     }
-    else if (action === 'list') {
-        const reactions = session.autoReact.reactions || {};
-        if (Object.keys(reactions).length === 0) {
-            return await sock.sendMessage(from, { 
-                text: "📝 No custom reactions set." 
-            }, { quoted: msg });
-        }
-        let list = "📝 *Custom Reactions:*\n";
-        for (const [word, emoji] of Object.entries(reactions)) {
-            list += `• "${word}" → ${emoji}\n`;
-        }
-        await sock.sendMessage(from, { text: list }, { quoted: msg });
-    }
-    else if (action === 'remove') {
-        const keyword = args[1]?.toLowerCase();
-        if (!keyword) {
-            return await sock.sendMessage(from, { 
-                text: "❌ Usage: .autoreact remove [keyword]" 
-            }, { quoted: msg });
-        }
-        if (session.autoReact.reactions && session.autoReact.reactions[keyword]) {
-            delete session.autoReact.reactions[keyword];
-            await sock.sendMessage(from, { 
-                text: `✅ Removed reaction for: "${keyword}"` 
-            }, { quoted: msg });
-        } else {
-            await sock.sendMessage(from, { 
-                text: `❌ No reaction found for: "${keyword}"` 
-            }, { quoted: msg });
-        }
+    else if (action === 'reset') {
+        // Reset emoji pool
+        session.autoReact.emojis = ['✅', '❤️', '👏', '🔥', '🎉', '💕', '💯', '😡', '✨', '🚀', '😂', '👀', '👍', '🌟', '💎', '🎈'];
+        await sock.sendMessage(from, { text: "✅ Emoji pool reset to default list." }, { quoted: msg });
     }
     else if (action === 'status') {
         const status = session.autoReact.enabled ? '✅ Enabled' : '❌ Disabled';
-        const emoji = session.autoReact.defaultEmoji || '❤️';
-        const count = Object.keys(session.autoReact.reactions || {}).length;
+        const mode = session.autoReact.mode;
+        const count = session.autoReact.emojis.length;
         await sock.sendMessage(from, { 
-            text: `📊 *Auto-React Status*\nStatus: ${status}\nDefault Emoji: ${emoji}\nCustom Reactions: ${count}` 
+            text: `📊 *Auto-React Status*\nStatus: ${status}\nMode: ${mode}\nEmoji Pool Size: ${count} emojis` 
         }, { quoted: msg });
     }
     else {
         await sock.sendMessage(from, { 
-            text: `❌ *Usage:* .autoreact [on/off/set/list/remove/status]\n\n` +
-                  `• *on* [emoji] - Enable auto-react (with optional default emoji)\n` +
+            text: `❌ *Usage:* .autoreact [on/off/add/reset/status]\n\n` +
+                  `• *on* - Enable auto-react with random emojis (Variety mode)\n` +
+                  `• *on [emoji]* - Enable with one specific emoji\n` +
                   `• *off* - Disable auto-react\n` +
-                  `• *set* [keyword] [emoji] - Set custom reaction for keyword\n` +
-                  `• *list* - Show all custom reactions\n` +
-                  `• *remove* [keyword] - Remove custom reaction\n` +
-                  `• *status* - Show current settings\n\n` +
-                  `📌 *Example:* .autoreact on 🔥` 
+                  `• *add [emoji]* - Add an emoji to the random pool\n` +
+                  `• *reset* - Reset the emoji pool\n` +
+                  `• *status* - Show current settings`
         }, { quoted: msg });
     }
 }
 
 /**
- * Helper to extract text from various Baileys message types.
- */
-function getMessageText(msg) {
-    if (!msg.message) return '';
-    const type = Object.keys(msg.message)[0];
-    if (type === 'conversation') return msg.message.conversation;
-    if (type === 'extendedTextMessage') return msg.message.extendedTextMessage.text;
-    if (type === 'imageMessage') return msg.message.imageMessage.caption;
-    if (type === 'videoMessage') return msg.message.videoMessage.caption;
-    if (type === 'documentMessage') return msg.message.documentMessage.caption;
-    // Handle ephemeral and view-once messages
-    if (type === 'ephemeralMessage') return getMessageText({ message: msg.message.ephemeralMessage.message });
-    if (type === 'viewOnceMessage') return getMessageText({ message: msg.message.viewOnceMessage.message });
-    if (type === 'viewOnceMessageV2') return getMessageText({ message: msg.message.viewOnceMessageV2.message });
-    return '';
-}
-
-/**
  * Message handler to process auto-reactions.
- * Add this to your main message listener.
  */
 async function handleAutoReact(sock, from, msg, session) {
-    if (!session || !session.autoReact) return;
+    if (!session || !session.autoReact || !session.autoReact.enabled) return;
     
-    // Support both boolean toggle and detailed object config
-    const isEnabled = typeof session.autoReact === 'object' ? session.autoReact.enabled : session.autoReact;
-    if (!isEnabled) return;
-    
-    const messageText = getMessageText(msg);
-    if (!messageText) return;
+    const config = session.autoReact;
+    let reaction = null;
 
-    let reaction = session.autoReact.defaultEmoji || '❤️';
-    
-    // Check for custom reactions
-    const reactions = session.autoReact.reactions || {};
-    let foundCustom = false;
-    for (const [keyword, emoji] of Object.entries(reactions)) {
-        if (messageText.toLowerCase().includes(keyword.toLowerCase())) {
-            reaction = emoji;
-            foundCustom = true;
-            break;
+    // 1. Check for keyword-based reactions first (if any)
+    const text = (msg.message?.conversation || msg.message?.extendedTextMessage?.text || "").toLowerCase();
+    if (text && config.reactions) {
+        for (const [kw, emo] of Object.entries(config.reactions)) {
+            if (text.includes(kw.toLowerCase())) {
+                reaction = emo;
+                break;
+            }
+        }
+    }
+
+    // 2. If no keyword match, use the emoji pool for variety
+    if (!reaction) {
+        const pool = config.emojis || [];
+        if (pool.length === 0) return;
+
+        if (config.mode === 'rotating') {
+            reaction = pool[config.rotatingIndex % pool.length];
+            config.rotatingIndex = (config.rotatingIndex + 1) % pool.length;
+        } else if (config.mode === 'random' || !config.mode) {
+            // Default to random for "different emojis on different messages"
+            reaction = pool[Math.floor(Math.random() * pool.length)];
+        } else {
+            reaction = config.defaultEmoji || pool[0];
         }
     }
 
     // Send reaction
-    try {
-        await sock.sendMessage(from, { 
-            react: { text: reaction, key: msg.key } 
-        });
-    } catch (error) {
-        console.error('Error sending auto-react:', error);
+    if (reaction) {
+        try {
+            await sock.sendMessage(from, { 
+                react: { text: reaction, key: msg.key } 
+            });
+        } catch (e) {
+            console.error('AutoReact Error:', e);
+        }
     }
 }
 
-// Export the command and the handler
 autoreactsCommand.handleAutoReact = handleAutoReact;
 module.exports = autoreactsCommand;
