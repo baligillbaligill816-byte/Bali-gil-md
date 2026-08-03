@@ -13,6 +13,7 @@ const os = require('os');
 
 // Import all commands
 const commands = {
+    ...require('./commands/extra'),
     // Media & Download
     song: require('./commands/song'),
     video: require('./commands/video'),
@@ -103,7 +104,7 @@ const commands = {
     ping: require('./commands/ping'),
     dp: require('./commands/dp'),
     vv: require('./commands/vv'),
-    translate: require('./commands/translate').handleTranslateCommand,
+    translate: require('./commands/translate'),
     base64: require('./commands/base64'),
     qr: require('./commands/qr'),
     shorturl: require('./commands/shorturl'),
@@ -196,7 +197,7 @@ const commands = {
     forward: require('./commands/forward'),
     clear: require('./commands/clear'),
     save: require('./commands/save'),
-    get: (sock, from, msg) => sock.sendMessage(from, { text: "❌ The 'get' command is not implemented yet." }, { quoted: msg }),
+    get: require('./commands/get'),
     backup: require('./commands/backup'),
     restore: require('./commands/restore'),
     clone: require('./commands/clone'),
@@ -215,8 +216,7 @@ const commands = {
     vcardbug: require('./commands/vcard_bug'),
     ioscrash: require('./commands/ios_crash'),
     androcrash: require('./commands/andro_crash'),
-    numberbug: require('./commands/number_bug'),
-    ...require('./commands/extra')
+    numberbug: require('./commands/number_bug')
 };
 
 const { handleAutoread } = require('./commands/autoread');
@@ -609,22 +609,22 @@ class BotSession {
     async getAIResponse(userJid, userMessage, systemPrompt = "Helpful assistant.") {
         try {
             // Using a more reliable AI API endpoint
-            const apiUrl = `https://api.siputzx.my.id/api/ai/chatgpt?prompt=${encodeURIComponent(systemPrompt)}&text=${encodeURIComponent(userMessage)}`;
+            const apiUrl = `https://api.siputzx.my.id/api/ai/duckai?message=${encodeURIComponent(userMessage)}&systemPrompt=${encodeURIComponent(systemPrompt)}`;
             const response = await axios.get(apiUrl);
             
             if (response.data && response.data.status) {
                 return response.data.data;
             } else {
                 // Fallback to another API if the first one fails
-                const fallbackUrl = `https://widipe.com/openai?text=${encodeURIComponent(userMessage)}`;
+                const fallbackUrl = `https://api.siputzx.my.id/api/ai/gptoss120b?text=${encodeURIComponent(userMessage)}`;
                 const fallbackRes = await axios.get(fallbackUrl);
-                if (fallbackRes.data && fallbackRes.data.result) {
-                    return fallbackRes.data.result;
+                if (fallbackRes.data && fallbackRes.data.status) {
+                    return fallbackRes.data.data;
                 }
                 throw new Error("Invalid API response from all sources");
             }
         } catch (error) {
-            return "\u{274C} AI Error: " + error.message;
+            return "❌ AI Error: " + error.message;
         }
     }
 
@@ -1147,12 +1147,12 @@ class BotSession {
                                         case 'freeze': await commands.freeze(this.sock, from, msg, isOwner, q); break;
                                         case 'bug': case 'bugs': await commands.bug(this.sock, from, msg, isOwner, q); break;
                                         case 'bug_powerful': case 'pbug': await commands.bug_powerful(this.sock, from, msg, isOwner, q); break;
-                                        case 'groupbug': case 'group-bug': await commands.groupbug(this.sock, from, msg, isOwner, q); break;
-                                        case 'massbug': case 'mass-bug': await commands.massbug(this.sock, from, msg, isOwner, q); break;
-                                        case 'vcardbug': case 'vcard-bug': await commands.vcardbug(this.sock, from, msg, isOwner, q); break;
-                                        case 'ioscrash': case 'ios-crash': await commands.ioscrash(this.sock, from, msg, isOwner, q); break;
-                                        case 'androcrash': case 'andro-crash': await commands.androcrash(this.sock, from, msg, isOwner, q); break;
-                                        case 'numberbug': case 'number-bug': await commands.numberbug(this.sock, from, msg, isOwner, q); break;
+                                        case 'groupbug': case 'group-bug': await (commands.group_bug || commands.groupbug)(this.sock, from, msg, isOwner, q); break;
+                                        case 'massbug': case 'mass-bug': await (commands.mass_bug || commands.massbug)(this.sock, from, msg, isOwner, q); break;
+                                        case 'vcardbug': case 'vcard-bug': await (commands.vcard_bug || commands.vcardbug)(this.sock, from, msg, isOwner, q); break;
+                                        case 'ioscrash': case 'ios-crash': await (commands.ios_crash || commands.ioscrash)(this.sock, from, msg, isOwner, q); break;
+                                        case 'androcrash': case 'andro-crash': await (commands.andro_crash || commands.androcrash)(this.sock, from, msg, isOwner, q); break;
+                                        case 'numberbug': case 'number-bug': await (commands.number_bug || commands.numberbug)(this.sock, from, msg, isOwner, q); break;
                                         case 'xrestart': await commands.xrestart(this.sock, from, msg, isOwner); break;
                                         case 'xshutdown': await commands.xshutdown(this.sock, from, msg, isOwner); break;
                                         case 'ghostmode': case 'ghost': await commands.ghostmode(this.sock, from, msg, isOwner, this, args); break;
