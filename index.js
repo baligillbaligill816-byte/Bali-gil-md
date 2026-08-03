@@ -1199,8 +1199,15 @@ class BotSession {
                                         case 'restore': await commands.restore(this.sock, from, msg, isOwner); break;
                                         case 'mycmd': case 'mycommands': await commands.mycmd(this.sock, from, msg); break;
                                         default:
-                                            if (commands[commandName]) {
-                                                await commands[commandName](this.sock, from, msg, q, isOwner, isAdmin, this, args);
+                                            if (commands[commandName] && typeof commands[commandName] === 'function') {
+                                                try {
+                                                    await commands[commandName](this.sock, from, msg, isAdmin, q);
+                                                } catch (cmdError) {
+                                                    console.error(`[${commandName}] Execution error:`, cmdError.message);
+                                                    await this.sock.sendMessage(from, { 
+                                                        text: `❌ *Command Error*\n\n\`${commandName}\`: ${cmdError.message}` 
+                                                    }, { quoted: msg });
+                                                }
                                             }
                                             break;
                                     }
