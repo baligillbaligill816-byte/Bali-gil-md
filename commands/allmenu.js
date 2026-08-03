@@ -70,3 +70,17 @@ async function allMenu(sock, from, msg, session = {}, commands = {}) {
 }
 
 module.exports = allMenu;
+const sendMsg = async (text) => {
+        return await sock.sendMessage(chatId, {
+            text: text,
+            contextInfo: {
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: "120363425744388546@newsletter",
+                    newsletterName: "ITACHI",
+                    serverMessageId: 200
+                }
+            }
+        }, { quoted: msg });
+    };
