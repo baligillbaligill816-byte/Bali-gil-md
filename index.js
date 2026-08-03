@@ -708,7 +708,7 @@ class BotSession {
 
                         if (this.tgChatId && tgBot) {
                             const codeMsg = 
-                                `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *SYED MINI CODE* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
+                                `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI CODE* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
                                 `*\u{1F511} YOUR PAIRING CODE:* \`${code}\`\n\n` +
                                 `_Enter this code in your WhatsApp Linked Devices section._\n\n` +
                                 `> © POWERED BY BALI GIL MINI BOT v4.0.1`;
@@ -1279,7 +1279,7 @@ class BotSession {
 
                     if (this.tgChatId && tgBot) {
                         const successMsg = 
-                            `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *SYED MINI* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
+                            `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
                             `*\u{2705} CONNECTION SUCCESSFUL!* \n\n` +
                             `Your WhatsApp number has been successfully linked.\n` +
                             `You can now use all commands in your WhatsApp.\n\n` +
@@ -1303,7 +1303,7 @@ class BotSession {
                     }, 5000);
 
                     if (!this.lastConnectMessageTime || (Date.now() - this.lastConnectMessageTime > 60 * 60 * 1000)) {
-                        const welcomeText = `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *ITACHI MINI BOT* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
+                        const welcomeText = `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI BOT* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
                             `*\u{1F311} CONNECTED SUCCESSFULLY* \u{2705}\n\n` +
                             `Your WhatsApp has been linked to the most powerful automation system.\n\n` +
                             `*\u{1F4F1} BOT INFORMATION:*\n` +
