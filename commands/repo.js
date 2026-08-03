@@ -27,7 +27,7 @@ module.exports = async function(sock, chatId, msg, args) {
 ┃  💀  *BALI GIL 𝙈𝘿  —  𝙍𝙀𝙋𝙊𝙎𝙄𝙏𝙊𝙍𝙔*  💀  ┃
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃  🔗 *Official Website*                   ┃
-┃  ➤  ┃
+┃  ➤  ┃https://github.com/itachi-uchia34/Bali-gil-md.git
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃  📱 *Pairing Guide*                      ┃
 ┃  ➤ Type .pair 92XXXXXXXXXX              ┃
