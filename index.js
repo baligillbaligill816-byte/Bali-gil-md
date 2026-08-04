@@ -197,7 +197,6 @@ const commands = {
     forward: require('./commands/forward'),
     clear: require('./commands/clear'),
     save: require('./commands/save'),
-    get: require('./commands/get'),
     backup: require('./commands/backup'),
     restore: require('./commands/restore'),
     clone: require('./commands/clone'),
