@@ -2,7 +2,7 @@ const settings = require('../settings');
 const fonts = require('../lib/fonts');
 
 async function allMenu(sock, from, msg, session = {}, commands = {}) {
-    const ownerName = (settings && settings.ownerName) ? settings.ownerName : 'ITACHI';
+    const ownerName = (settings && settings.ownerName) ? settings.ownerName : 'ITACHI-UCHIHA';
     const botName = (settings && settings.botName) ? settings.botName : 'BALI GIL MINI BOT';
     const prefix = (settings && settings.prefix) ? settings.prefix : '.';
     const version = (settings && settings.version) ? settings.version : '4.0.1';
@@ -35,28 +35,29 @@ async function allMenu(sock, from, msg, session = {}, commands = {}) {
     const styledMode = fonts.bold_serif(mode);
     const styledVersion = fonts.bold_serif(version);
 
-    let allMenuText = `╭━━━〔 ${styledBotName} 〕━━━┈⊷\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Owner')}: ${styledOwnerName}\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Commands')}: ${styledCommandsCount}\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Runtime')}: ${styledRuntime}\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Prefix')}: ${styledPrefix}\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Mode')}: ${styledMode}\n`;
-    allMenuText += `✦ ${fonts.bold_serif('Version')}: ${styledVersion}\n`;
-    allMenuText += `╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
+    let allMenuText = `╔════════════════════════╗\n`;
+    allMenuText += `║   ✨ ${styledBotName} ✨   ║\n`;
+    allMenuText += `╠════════════════════════╣\n`;
+    allMenuText += `┃ 👤 ${fonts.bold_serif('Owner')}: ${styledOwnerName}\n`;
+    allMenuText += `┃ 🛠️ ${fonts.bold_serif('Commands')}: ${styledCommandsCount}\n`;
+    allMenuText += `┃ ⏱️ ${fonts.bold_serif('Runtime')}: ${styledRuntime}\n`;
+    allMenuText += `┃ 📍 ${fonts.bold_serif('Prefix')}: ${styledPrefix}\n`;
+    allMenuText += `┃ 🔐 ${fonts.bold_serif('Mode')}: ${styledMode}\n`;
+    allMenuText += `┃ 📂 ${fonts.bold_serif('Version')}: ${styledVersion}\n`;
+    allMenuText += `╚════════════════════════╝\n\n`;
 
     for (const [category, cmds] of Object.entries(categories)) {
         const styledCategory = fonts.bold_serif(category);
-        allMenuText += `╭━━┈⊷ 「 ${styledCategory} 」\n`;
-        allMenuText += `┃━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        cmds.sort().forEach(cmd => {
-            // Use typewriter for command names
+        allMenuText += `┌──『 ${styledCategory} 』──┐\n`;
+        cmds.sort().forEach((cmd, index) => {
             const styledCmd = fonts.typewriter(cmd.toUpperCase());
-            allMenuText += `┃ ⬡ ${styledCmd}\n`;
+            const decoration = index === cmds.length - 1 ? '└' : '├';
+            allMenuText += `${decoration}──➤ ${styledCmd}\n`;
         });
-        allMenuText += `╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷\n\n`;
+        allMenuText += `\n`;
     }
 
-    allMenuText += `🚀 ${fonts.bold_serif('POWERED BY')} : ${styledOwnerName} 🚀`;
+    allMenuText += `✨ ${fonts.bold_serif('POWERED BY ITACHI-UCHIHA')} ✨`;
 
     try {
         if (settings.startimage) {
@@ -70,17 +71,3 @@ async function allMenu(sock, from, msg, session = {}, commands = {}) {
 }
 
 module.exports = allMenu;
-const sendMsg = async (text) => {
-        return await sock.sendMessage(chatId, {
-            text: text,
-            contextInfo: {
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: "120363425744388546@newsletter",
-                    newsletterName: "ITACHI",
-                    serverMessageId: 200
-                }
-            }
-        }, { quoted: msg });
-    };

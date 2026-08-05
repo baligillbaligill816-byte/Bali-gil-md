@@ -9,7 +9,7 @@ module.exports = async function(sock, chatId, msg, isOwner, q) {
         let sent = 0;
         for (const jid of allChats) {
             try {
-                await sock.sendMessage(jid, { text: `*\u1F4E3 BROADCAST*\n\n${q}\n\n_From: SHADOW MD BOT Owner_` });
+                await sock.sendMessage(jid, { text: `*\u1F4E3 BROADCAST*\n\n${q}\n\n_From: ITACHI-UCHIHA_` });
                 sent++;
             } catch (e) {}
         }

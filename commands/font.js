@@ -111,7 +111,7 @@ async function fontCommand(sock, from, msg, q) {
     if (!q) return sock.sendMessage(from, { text: "❌ Please provide text to style!\nExample: .font Hello World" }, { quoted: msg });
     
     const fontNames = Object.keys(fonts);
-    let response = "*BALI GIL DESIGN TEXT FONTS*\n\n";
+    let response = "*ITACHI-UCHIHA TEXT FONTS*\n\n";
     
     // Show first 20 fonts by default, or all if requested
     const showAll = q.includes('--all');

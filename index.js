@@ -935,63 +935,63 @@ class BotSession {
                                             await allMenuCmd(this.sock, from, msg, this, commands); 
                                             break;
                                         case 'ownermenu': {
-                                            const text = `╭━━┈⊷ 「 OWNER MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ PUBLIC\n┃ ⬡ PRIVATE\n┃ ⬡ BLOCK\n┃ ⬡ UNBLOCK\n┃ ⬡ RESTART\n┃ ⬡ SHUTDOWN\n┃ ⬡ BCALL\n┃ ⬡ BCGC\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 OWNER MENU 』──┐\n├──➤ PUBLIC\n├──➤ PRIVATE\n├──➤ BLOCK\n├──➤ UNBLOCK\n├──➤ RESTART\n├──➤ SHUTDOWN\n├──➤ BCALL\n└──➤ BCGC\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'groupmenu': {
-                                            const text = `╭━━┈⊷ 「 GROUP MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ KICK\n┃ ⬡ ADD\n┃ ⬡ PROMOTE\n┃ ⬡ DEMOTE\n┃ ⬡ MUTE\n┃ ⬡ UNMUTE\n┃ ⬡ TAGALL\n┃ ⬡ HIDETAG\n┃ ⬡ GROUPLINK\n┃ ⬡ GROUPINFO\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 GROUP MENU 』──┐\n├──➤ KICK\n├──➤ ADD\n├──➤ PROMOTE\n├──➤ DEMOTE\n├──➤ MUTE\n├──➤ UNMUTE\n├──➤ TAGALL\n├──➤ HIDETAG\n├──➤ GROUPLINK\n└──➤ GROUPINFO\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'downloadmenu': {
-                                            const text = `╭━━┈⊷ 「 DOWNLOAD MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ SONG\n┃ ⬡ VIDEO\n┃ ⬡ INSTA\n┃ ⬡ TIKTOK\n┃ ⬡ FACEBOOK\n┃ ⬡ YOUTUBE\n┃ ⬡ SPOTIFY\n┃ ⬡ APK\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 DOWNLOAD MENU 』──┐\n├──➤ SONG\n├──➤ VIDEO\n├──➤ INSTA\n├──➤ TIKTOK\n├──➤ FACEBOOK\n├──➤ YOUTUBE\n├──➤ SPOTIFY\n└──➤ APK\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'aimenu': {
-                                            const text = `╭━━┈⊷ 「 AI MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ AI\n┃ ⬡ CHATBOT\n┃ ⬡ GALI\n┃ ⬡ GPT4\n┃ ⬡ GEMINI\n┃ ⬡ LLAMA\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 AI MENU 』──┐\n├──➤ AI\n├──➤ CHATBOT\n├──➤ GALI\n├──➤ GPT4\n├──➤ GEMINI\n└──➤ LLAMA\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'bugmenu': {
-                                            const text = `╭━━┈⊷ 「 BUG MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ CRASH\n┃ ⬡ FREEZE\n┃ ⬡ BUG\n┃ ⬡ BUG_POWERFUL\n┃ ⬡ WA-CRASH\n┃ ⬡ UI-FREEZE\n┃ ⬡ GROUP-BUG\n┃ ⬡ MASS-BUG\n┃ ⬡ VCARD-BUG\n┃ ⬡ IOS-CRASH\n┃ ⬡ ANDRO-CRASH\n┃ ⬡ NUMBER-BUG\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 BUG MENU 』──┐\n├──➤ CRASH\n├──➤ FREEZE\n├──➤ BUG\n├──➤ BUG_POWERFUL\n├──➤ WA-CRASH\n├──➤ UI-FREEZE\n├──➤ GROUP-BUG\n├──➤ MASS-BUG\n├──➤ VCARD-BUG\n├──➤ IOS-CRASH\n├──➤ ANDRO-CRASH\n└──➤ NUMBER-BUG\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'toolsmenu': {
-                                            const text = `╭━━┈⊷ 「 TOOLS MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ PING\n┃ ⬡ PAIR\n┃ ⬡ FONT\n┃ ⬡ TRANSLATE\n┃ ⬡ WEATHER\n┃ ⬡ GITHUB\n┃ ⬡ CALC\n┃ ⬡ IPINFO\n┃ ⬡ WIKI\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 TOOLS MENU 』──┐\n├──➤ PING\n├──➤ PAIR\n├──➤ FONT\n├──➤ TRANSLATE\n├──➤ WEATHER\n├──➤ GITHUB\n├──➤ CALC\n├──➤ IPINFO\n└──➤ WIKI\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'pair': await commands.pair(this.sock, from, msg, q); break;
                                         case 'funmenu': case 'gamemenu': {
-                                            const text = `╭━━┈⊷ 「 FUN & GAME MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ JOKE\n┃ ⬡ MEME\n┃ ⬡ TRIVIA\n┃ ⬡ TICTACTOE\n┃ ⬡ CHESS\n┃ ⬡ 8BALL\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 FUN & GAME MENU 』──┐\n├──➤ JOKE\n├──➤ MEME\n├──➤ TRIVIA\n├──➤ TICTACTOE\n├──➤ CHESS\n└──➤ 8BALL\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'animemenu': {
-                                            const text = `╭━━┈⊷ 「 ANIME MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ WAIFU\n┃ ⬡ NEKO\n┃ ⬡ SHINOBU\n┃ ⬡ MEGUMIN\n┃ ⬡ HUG\n┃ ⬡ KISS\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 ANIME MENU 』──┐\n├──➤ WAIFU\n├──➤ NEKO\n├──➤ SHINOBU\n├──➤ MEGUMIN\n├──➤ HUG\n└──➤ KISS\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'islamicmenu': {
-                                            const text = `╭━━┈⊷ 「 ISLAMIC MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ QURAN\n┃ ⬡ HADITH\n┃ ⬡ PRAYER\n┃ ⬡ QIBLA\n┃ ⬡ ASMAULHUSNA\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 ISLAMIC MENU 』──┐\n├──➤ QURAN\n├──➤ HADITH\n├──➤ PRAYER\n├──➤ QIBLA\n└──➤ ASMAULHUSNA\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'logomenu': {
-                                            const text = `╭━━┈⊷ 「 LOGO MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ NEON\n┃ ⬡ GLITCH\n┃ ⬡ GOLD\n┃ ⬡ FIRE\n┃ ⬡ WATER\n┃ ⬡ SHADOW\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 LOGO MENU 』──┐\n├──➤ NEON\n├──➤ GLITCH\n├──➤ GOLD\n├──➤ FIRE\n├──➤ WATER\n└──➤ SHADOW\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'systemmenu': {
-                                            const text = `╭━━┈⊷ 「 SYSTEM MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ UPTIME\n┃ ⬡ SERVERINFO\n┃ ⬡ SPEEDTEST\n┃ ⬡ REPORT\n┃ ⬡ DEVICE\n┃ ⬡ RUNTIME\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 SYSTEM MENU 』──┐\n├──➤ UPTIME\n├──➤ SERVERINFO\n├──➤ SPEEDTEST\n├──➤ REPORT\n├──➤ DEVICE\n└──➤ RUNTIME\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
                                         case 'protectionmenu': {
-                                            const text = `╭━━┈⊷ 「 PROTECTION MENU 」\n┃━━━━━━━━━━━━━━━━━━━━━━━\n┃ ⬡ ANTILINK\n┃ ⬡ ANTICALL\n┃ ⬡ ANTIDELETE\n┃ ⬡ ANTISTATUS\n┃ ⬡ ANTIBUG\n╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷`;
+                                            const text = `┌──『 PROTECTION MENU 』──┐\n├──➤ ANTILINK\n├──➤ ANTICALL\n├──➤ ANTIDELETE\n├──➤ ANTISTATUS\n└──➤ ANTIBUG\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
                                             break;
                                         }
@@ -1352,34 +1352,34 @@ class BotSession {
 function generateMenuText(userName, session) {
     const mode = session.isPublic ? 'public' : 'private';
     const botName = settings.botName || 'BALI-GIL-MD';
-    const ownerName = settings.ownerName || 'ITACHI';
+    const ownerName = settings.ownerName || 'ITACHI-UCHIHA';
     
-    return `╭━━━〔 ${botName} 〕━━━┈⊷
-✦ Owner: ${ownerName}
-✦ Commands: 420+
-✦ Runtime: ${process.uptime().toFixed(0)}s
-✦ Prefix: ${settings.prefix}
-✦ Mode: ${mode}
-✦ Version: ${settings.version}
-╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷
+    return `╔════════════════════════╗
+║   ✨ ${botName} ✨   ║
+╠════════════════════════╣
+┃ 👤 Owner: ${ownerName}
+┃ 🛠️ Commands: 420+
+┃ ⏱️ Runtime: ${process.uptime().toFixed(0)}s
+┃ 📍 Prefix: ${settings.prefix}
+┃ 🔐 Mode: ${mode}
+┃ 📂 Version: ${settings.version}
+╚════════════════════════╝
 
-╭━━┈⊷ 「 CATEGORIES 」
-┃━━━━━━━━━━━━━━━━━━━━━━━
-┃ ⬡ .ALLMENU
-┃ ⬡ .OWNERMENU
-┃ ⬡ .GROUPMENU
-┃ ⬡ .AIMENU
-┃ ⬡ .DOWNLOADMENU
-┃ ⬡ .TOOLSMENU
-┃ ⬡ .FUNMENU
-┃ ⬡ .ANIMEMENU
-┃ ⬡ .ISLAMICMENU
-┃ ⬡ .LOGOMENU
-┃ ⬡ .SYSTEMMENU
-┃ ⬡ .PROTECTIONMENU
-╰━━━━━━━━━━━━━━━━━━━━━━━┈⊷
+┌──『 CATEGORIES 』──┐
+├──➤ .ALLMENU
+├──➤ .OWNERMENU
+├──➤ .GROUPMENU
+├──➤ .AIMENU
+├──➤ .DOWNLOADMENU
+├──➤ .TOOLSMENU
+├──➤ .FUNMENU
+├──➤ .ANIMEMENU
+├──➤ .ISLAMICMENU
+├──➤ .LOGOMENU
+├──➤ .SYSTEMMENU
+└──➤ .PROTECTIONMENU
 
-🚀 POWERED BY : ${ownerName} 🚀`;
+✨ POWERED BY ITACHI-UCHIHA ✨`;
 }
 
 const sendMsg = async (text) => {

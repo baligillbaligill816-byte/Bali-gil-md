@@ -23,14 +23,14 @@ module.exports = async function(sock, chatId, msg, q) {
         const country = countries[parseInt(bin[2]) % countries.length];
         const bank = banks[parseInt(bin[3]) % banks.length];
 
-        const text = `💳 *SHADOW BIN LOOKUP* 💳\n\n` +
+        const text = `💳 *ITACHI-UCHIHA BIN LOOKUP* 💳\n\n` +
                      `🔢 *BIN:* ${bin}\n` +
                      `🏦 *Scheme:* ${scheme}\n` +
                      `💰 *Type:* ${type}\n` +
                      `🏛️ *Bank:* ${bank}\n` +
                      `🌍 *Country:* ${country}\n\n` +
                      `⚠️ For educational purposes only!\n\n` +
-                     `_Powered by Shadow MD Bot_`;
+                     `_POWERED BY ITACHI-UCHIHA_`;
 
         await sock.sendMessage(chatId, { text }, { quoted: msg });
     } catch (err) {

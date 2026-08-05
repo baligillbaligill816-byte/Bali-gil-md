@@ -57,7 +57,7 @@ async function animedpCommand(sock, from, msg) {
             } else {
                 await sock.sendMessage(from, { 
                     image: fs.readFileSync(outputPath), 
-                    caption: "BALI GIL MD powered by ITACHI UCHIHA" 
+                    caption: "POWERED BY ITACHI-UCHIHA" 
                 }, { quoted: msg });
             }
 
