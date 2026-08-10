@@ -1399,15 +1399,11 @@ const sendMsg = async (text) => {
 
 // =================== SOCKET.IO ===================
 io.on('connection', (socket) => {
-    // Admin auth
-    socket.on('admin-auth', (password) => {
-        const adminPass = process.env.ADMIN_PASSWORD || 'BALI_GIL';
-        if (password === adminPass) {
-            socket.authenticated = true;
-            socket.emit('admin-auth-success');
-        } else {
-            socket.emit('admin-auth-fail');
-        }
+    // Admin auth (Bypassed - No password required)
+    socket.authenticated = true;
+    socket.on('admin-auth', () => {
+        socket.authenticated = true;
+        socket.emit('admin-auth-success');
     });
 
     socket.on('set-user', (userId) => {
