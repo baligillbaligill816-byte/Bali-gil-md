@@ -1,5 +1,16 @@
 [build]
 builder = "NIXPACKS"
 
+[build.setup]
+pkgs = ["nodePackages.pnpm", "ffmpeg", "imagemagick", "webp"]
+
 [deploy]
 startCommand = "npm start"
+healthCheckPath = "/health"
+healthCheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+maxRestarts = 10
+
+[env]
+PORT = "3000"
+NODE_ENV = "production"

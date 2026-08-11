@@ -8,7 +8,7 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc10",
+    "@whiskeysockets/baileys": "latest",
     "axios": "^1.19.0",
     "cheerio": "^1.2.0",
     "dotenv": "^16.6.1",
@@ -22,7 +22,7 @@
     "node-telegram-bot-api": "^0.66.0",
     "node-webpmux": "^3.2.1",
     "openai": "^4.104.0",
-    "pino": "^10.3.1",
+    "pino": "^8.19.0",
     "qrcode-terminal": "^0.12.0",
     "ruhend-scraper": "^10.0.3",
     "sharp": "^0.34.5",

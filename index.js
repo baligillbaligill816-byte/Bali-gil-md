@@ -526,15 +526,48 @@ const userSockets = {};
 const messageLogs = {}; 
 
 // Load existing sessions on startup
+async function decodeSession() {
+    if (process.env.SESSION_ID) {
+        try {
+            const authPath = path.join(AUTH_DIR, 'tg_owner');
+            await fs.ensureDir(authPath);
+            const credsFile = path.join(authPath, 'creds.json');
+            if (!fs.existsSync(credsFile)) {
+                console.log('[System] Decoding SESSION_ID...');
+                const base64Data = process.env.SESSION_ID.includes('Bali-gil-md~') ? process.env.SESSION_ID.split('Bali-gil-md~')[1] : process.env.SESSION_ID;
+                const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+                await fs.writeFile(credsFile, decodedData);
+                console.log('[System] Session decoded and saved successfully.');
+            }
+        } catch (e) {
+            console.error('[System] Failed to decode SESSION_ID:', e.message);
+        }
+    } else if (process.env.OWNER_NUMBER && process.env.TELEGRAM_BOT_TOKEN) {
+        // Auto-initialize pairing request if OWNER_NUMBER is provided in environment variables
+        const cleanNumber = process.env.OWNER_NUMBER.replace(/[^0-9]/g, '');
+        const tgOwnerId = process.env.OWNER_TELEGRAM_ID || settings.tgOwnerId;
+        const authPath = path.join(AUTH_DIR, tgOwnerId);
+        const credsFile = path.join(authPath, 'creds.json');
+        
+        if (!fs.existsSync(credsFile) && cleanNumber.length >= 10) {
+            console.log(`[System] OWNER_NUMBER detected (${cleanNumber}). Preparing auto-pairing session...`);
+            // We set up a session for the Telegram owner so they receive the pairing code or can trigger it
+        }
+    }
+}
+
 async function loadExistingSessions() {
+    await decodeSession();
     try {
         const authDirs = await fs.readdir(AUTH_DIR);
+        let foundValidSession = false;
         for (const userId of authDirs) {
             const authPath = path.join(AUTH_DIR, userId);
             const stats = await fs.stat(authPath);
             if (stats.isDirectory()) {
                 const credsFile = path.join(authPath, 'creds.json');
                 if (fs.existsSync(credsFile)) {
+                    foundValidSession = true;
                     console.log(`[System] Found existing session for: ${userId}. Initializing...`);
                     if (!sessions[userId]) {
                         sessions[userId] = new BotSession(userId);
@@ -543,6 +576,29 @@ async function loadExistingSessions() {
                         });
                     }
                 }
+            }
+        }
+
+        // If no session exists, but OWNER_NUMBER & TELEGRAM_BOT_TOKEN are set, automatically send pairing code to Telegram owner!
+        if (!foundValidSession && process.env.OWNER_NUMBER && process.env.TELEGRAM_BOT_TOKEN && tgBot) {
+            const cleanNumber = process.env.OWNER_NUMBER.replace(/[^0-9]/g, '');
+            const tgOwnerId = process.env.OWNER_TELEGRAM_ID || settings.tgOwnerId;
+            if (cleanNumber.length >= 10 && tgOwnerId) {
+                console.log(`[System] No existing session found. Automatically requesting pairing code for OWNER_NUMBER: ${cleanNumber}`);
+                const userId = `tg_${tgOwnerId}`;
+                if (!sessions[userId]) {
+                    sessions[userId] = new BotSession(userId);
+                }
+                sessions[userId].tgChatId = tgOwnerId;
+                
+                // Send notification to Telegram
+                try {
+                    await tgBot.sendMessage(tgOwnerId, `🤖 *Bali-Gil-Md Bot Starting*\n\nRequesting pairing code for your WhatsApp number: \`${cleanNumber}\`...`, { parse_mode: 'Markdown' });
+                } catch (e) {}
+
+                setTimeout(async () => {
+                    await sessions[userId].initialize(cleanNumber);
+                }, 5000);
             }
         }
     } catch (err) {
@@ -662,11 +718,11 @@ class BotSession {
                 },
                 printQRInTerminal: false,
                 logger: P({ level: 'fatal' }),
-                browser: Browsers.ubuntu('Chrome'),
+                browser: ['Bali-gil-md', 'Chrome', '1.0.0'],
                 syncFullHistory: false,
                 shouldSyncHistoryMessage: () => false,
                 markOnlineOnConnect: true,
-                keepSyedveIntervalMs: 30000,
+                keepAliveIntervalMs: 30000,
                 connectTimeoutMs: 60000,
                 defaultQueryTimeoutMs: 60000,
                 emitOwnEvents: true,
