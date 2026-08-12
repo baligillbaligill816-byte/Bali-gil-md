@@ -4,47 +4,76 @@ const fs = require('fs-extra');
 const path = require('path');
 
 async function pairCommand(sock, from, msg, q) {
-    if (!q) return sock.sendMessage(from, { text: "❌ Please provide a phone number with country code!\nExample: .pair 923271054080" }, { quoted: msg });
+    if (!q) {
+        return sock.sendMessage(
+            from,
+            { text: '❌ Please provide a phone number with country code!\nExample: .pair 923271054080' },
+            { quoted: msg }
+        );
+    }
 
     const phoneNumber = q.replace(/[^0-9]/g, '');
-    if (phoneNumber.length < 10) return sock.sendMessage(from, { text: "❌ Invalid phone number!" }, { quoted: msg });
+    if (phoneNumber.length < 10) {
+        return sock.sendMessage(
+            from,
+            { text: '❌ Invalid phone number. Use at least 10 digits with country code.' },
+            { quoted: msg }
+        );
+    }
 
-    await sock.sendMessage(from, { text: "🔄 Generating pairing code... Please wait." }, { quoted: msg });
+    await sock.sendMessage(
+        from,
+        { text: '╭━━〔 PAIRING REQUEST 〕━━╮\n┃ Generating a temporary code...\n╰━━━━━━━━━━━━━━━━━━━━━━╯\n\nPlease keep WhatsApp open while the code is generated.' },
+        { quoted: msg }
+    );
 
     const tempSessionId = `temp_pair_${Date.now()}`;
     const authPath = path.join(__dirname, '../auth_info', tempSessionId);
-    
+
     try {
-        const { state, saveCreds } = await useMultiFileAuthState(authPath);
+        const { state } = await useMultiFileAuthState(authPath);
         const tempSock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
             logger: pino({ level: 'fatal' }),
-            browser: Browsers.ubuntu('Chrome'),
+            browser: Browsers.ubuntu('Chrome')
         });
 
         if (!tempSock.authState.creds.registered) {
             await delay(3000);
             let code = await tempSock.requestPairingCode(phoneNumber);
-            code = code?.match(/.{1,4}/g)?.join("-") || code;
+            code = code?.match(/.{1,4}/g)?.join('-') || code;
 
-            const response = `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL PAIRING* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-                             `*\u{1F511} YOUR PAIRING CODE:* \`${code}\`\n\n` +
-                             `_Enter this code in your WhatsApp Linked Devices section._\n\n` +
-                             `> © POWERED BY BALI GIL MINI BOT`;
+            const response =
+                `╭━━〔 *PAIRING CODE READY* 〕━━╮\n` +
+                `┃ Code: \`${code}\`\n` +
+                `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+                `Open WhatsApp → Settings → Linked Devices → Link a Device, then enter this code.\n` +
+                `The code is temporary and expires shortly.\n\n` +
+                `> POWERED BY ITACHI-UCHIHA`;
 
             await sock.sendMessage(from, { text: response }, { quoted: msg });
-            
-            // Cleanup after a short delay
+
             setTimeout(async () => {
                 try {
+                    await tempSock.logout();
+                } catch (e) {
+                    // The temporary socket may already be closed after linking.
+                }
+                try {
                     await fs.remove(authPath);
-                } catch (e) {}
+                } catch (e) {
+                    // Cleanup is best effort.
+                }
             }, 60000);
         }
     } catch (err) {
-        await sock.sendMessage(from, { text: `\u{274C} Error: ${err.message}` }, { quoted: msg });
-        try { await fs.remove(authPath); } catch (e) {}
+        await sock.sendMessage(from, { text: `❌ Pairing failed: ${err.message}` }, { quoted: msg });
+        try {
+            await fs.remove(authPath);
+        } catch (e) {
+            // Cleanup is best effort.
+        }
     }
 }
 

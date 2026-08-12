@@ -226,7 +226,30 @@
   .instructions li{margin-bottom:10px;}
   .instructions li::marker{color:var(--red);}
 
-  .input-box{display:flex;flex-direction:column;gap:16px;max-width:440px;}
+  .connect-head{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:26px;}
+  .connect-head h2{margin-bottom:8px!important;}
+  .panel-lead{color:var(--muted);font-size:.84rem;max-width:640px;}
+  .connection-chip{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:var(--muted);font-size:.68rem;letter-spacing:1px;background:rgba(0,0,0,.24);}
+  .connection-chip .chip-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);}
+  .connection-chip.success{color:var(--red);border-color:var(--red);}
+  .connection-chip.success .chip-dot{background:var(--red);box-shadow:0 0 8px var(--red);}
+  .connection-chip.error{color:var(--danger);border-color:var(--danger);}
+  .connection-chip.error .chip-dot{background:var(--danger);box-shadow:0 0 8px var(--danger);}
+  .connect-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:18px;}
+  .connect-card{border:1px solid var(--border);border-radius:10px;padding:22px;background:rgba(255,0,0,.03);}
+  .card-kicker{color:var(--red);font-size:.68rem;letter-spacing:1.5px;margin-bottom:14px;}
+  .input-box{display:flex;flex-direction:column;gap:16px;}
+  .input-label{display:block;color:var(--text);font-size:.8rem;margin-bottom:8px;}
+  .input-help{color:var(--muted);font-size:.72rem;margin-top:8px;}
+  .reset-btn{margin-top:10px;}
+  .connect-steps{list-style:none;display:flex;flex-direction:column;gap:14px;}
+  .connect-steps li{display:grid;grid-template-columns:30px 1fr;gap:10px;color:var(--muted);font-size:.78rem;align-items:start;}
+  .connect-steps .step-number{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:1px solid var(--border);border-radius:50%;color:var(--red);font-size:.7rem;}
+  .connect-steps strong{display:block;color:var(--text);font-size:.8rem;margin-bottom:2px;}
+  #status{margin-top:20px;}
+  .code-header{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.7rem;letter-spacing:1px;margin-bottom:10px;}
+  .code-actions{display:flex;justify-content:center;margin-top:14px;}
+  .code-actions .btn{width:auto;min-width:160px;}
   .input-group{position:relative;}
   .input-group i{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted);}
   .input-group input{
@@ -280,6 +303,9 @@
     .nav-toggle{display:block;}
     header{padding:120px 16px 50px;}
     section.panel{padding:24px 18px;}
+    .connect-head{flex-direction:column;}
+    .connect-grid{grid-template-columns:1fr;}
+    .connection-chip{align-self:flex-start;}
     .code-box{font-size:1.4rem;letter-spacing:5px;}
   }
 </style>
@@ -351,31 +377,46 @@
   </section>
 
   <section id="connect" class="panel" data-label="./connect">
-    <h2><i class="fas fa-link"></i> Connect to WhatsApp</h2>
-    <div class="instructions">
-      <h3>How to connect</h3>
-      <ol>
-        <li>Enter your WhatsApp number with country code (no "+", no spaces, no brackets)</li>
-        <li>Click "Request Pairing Code"</li>
-        <li>Copy the 8-digit code</li>
-        <li>Open WhatsApp → Settings → Linked Devices → Link a Device</li>
-        <li>Paste the code when prompted</li>
-      </ol>
-    </div>
-
-    <div class="input-box">
-      <div class="input-group">
-        <i class="fas fa-phone"></i>
-        <input type="tel" id="phone" placeholder="e.g. 923300000000 (with country code)">
+    <div class="connect-head">
+      <div>
+        <h2><i class="fas fa-link"></i> Connect your WhatsApp</h2>
+        <p class="panel-lead">Generate a temporary pairing code, link your WhatsApp device, and watch the session status update here in real time.</p>
       </div>
-      <button class="btn" id="requestPairing"><i class="fas fa-key"></i> Request Pairing Code</button>
+      <div class="connection-chip" id="connectionChip"><span class="chip-dot"></span><span id="connectionLabel">READY TO CONNECT</span></div>
     </div>
 
-    <div id="status"></div>
+    <div class="connect-grid">
+      <div class="connect-card">
+        <div class="card-kicker">STEP 01 // ENTER NUMBER</div>
+        <label class="input-label" for="phone">WhatsApp number with country code</label>
+        <div class="input-box">
+          <div class="input-group">
+            <i class="fas fa-phone"></i>
+            <input type="tel" id="phone" autocomplete="tel" inputmode="numeric" placeholder="e.g. 923300000000">
+          </div>
+          <div class="input-help">Use digits only. Do not include the plus sign, spaces, or brackets.</div>
+          <button class="btn" id="requestPairing" type="button"><i class="fas fa-key"></i> Generate Pairing Code</button>
+          <button class="btn btn-outline reset-btn" id="resetPairing" type="button"><i class="fas fa-rotate-right"></i> Start Another Session</button>
+        </div>
+      </div>
+
+      <div class="connect-card">
+        <div class="card-kicker">STEP 02 // LINK DEVICE</div>
+        <ol class="connect-steps">
+          <li><span class="step-number">1</span><div><strong>Request a code</strong>Enter your number and generate a code.</div></li>
+          <li><span class="step-number">2</span><div><strong>Open WhatsApp</strong>Go to Settings → Linked Devices → Link a Device.</div></li>
+          <li><span class="step-number">3</span><div><strong>Enter the code</strong>Use the code shown below before it expires.</div></li>
+        </ol>
+      </div>
+    </div>
+
+    <div id="status" role="status" aria-live="polite"></div>
 
     <div class="code-wrap" id="codeWrap">
-      <div class="code-box" id="pairingCode" onclick="copyCode()">0000 0000</div>
-      <div class="copy-hint">Tap the code to copy</div>
+      <div class="code-header"><span>PAIRING CODE</span><span id="codeTimer">WAITING</span></div>
+      <div class="code-box" id="pairingCode">0000 0000</div>
+      <div class="copy-hint">Click the code or use the copy button.</div>
+      <div class="code-actions"><button class="btn btn-outline" id="copyCodeButton" type="button"><i class="fas fa-copy"></i> Copy Code</button></div>
       <div class="waiting"><span class="dot"></span> Waiting for device to link...</div>
     </div>
   </section>
@@ -481,51 +522,101 @@ const phoneInput = document.getElementById('phone');
 const requestBtn = document.getElementById('requestPairing');
 const codeWrap = document.getElementById('codeWrap');
 const pairingCode = document.getElementById('pairingCode');
+const copyCodeButton = document.getElementById('copyCodeButton');
+const resetPairingButton = document.getElementById('resetPairing');
+const connectionChip = document.getElementById('connectionChip');
+const connectionLabel = document.getElementById('connectionLabel');
+const codeTimer = document.getElementById('codeTimer');
+let currentUserId = null;
+let countdownTimer = null;
+
+function setConnectionState(label, state){
+  connectionLabel.innerText = label;
+  connectionChip.className = 'connection-chip ' + (state || '');
+}
 
 function copyCode(){
   const code = pairingCode.innerText;
-  if(code === '0000 0000') return;
+  if(!code || code === '0000 0000' || code === 'LINKED') return;
   navigator.clipboard.writeText(code.replace(/\s/g,'')).then(()=>showToast('CODE COPIED TO CLIPBOARD!'));
 }
+
+function resetPairing(){
+  if(countdownTimer) clearInterval(countdownTimer);
+  currentUserId = null;
+  phoneInput.value = '';
+  pairingCode.innerText = '0000 0000';
+  pairingCode.style.color = '';
+  pairingCode.style.borderColor = '';
+  codeTimer.innerText = 'WAITING';
+  codeWrap.style.display = 'none';
+  requestBtn.disabled = false;
+  requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
+  setConnectionState('READY TO CONNECT', '');
+  statusEl.className = '';
+  statusEl.innerText = '';
+}
+
+copyCodeButton.addEventListener('click', copyCode);
+pairingCode.addEventListener('click', copyCode);
+resetPairingButton.addEventListener('click', resetPairing);
 
 requestBtn.addEventListener('click', ()=>{
   const number = phoneInput.value.replace(/\D/g,'');
   if(!number || number.length < 10){
+    setConnectionState('CHECK NUMBER', 'error');
     setStatus('Enter a valid phone number with country code.', 'error');
     phoneInput.focus();
     return;
   }
   requestBtn.disabled = true;
-  requestBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Requesting...';
-  setStatus('Sending pairing request to server...', 'warning');
+  requestBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Generating...';
+  setConnectionState('REQUESTING CODE', '');
+  setStatus('Sending a secure pairing request...', 'warning');
 
-  const userId = 'user_' + Math.random().toString(36).substr(2,9);
-  socket.emit('set-user', userId);
-  socket.emit('pair-request', { userId, number });
+  currentUserId = 'user_' + Math.random().toString(36).substr(2,9);
+  socket.emit('set-user', currentUserId);
+  socket.emit('pair-request', { userId: currentUserId, number });
 });
 
-socket.on('pairing-code', (code)=>{
+socket.on('pairing-code',(code)=>{
   requestBtn.disabled = false;
-  requestBtn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code';
-  setStatus('Pairing code generated. Link it in WhatsApp within 60 seconds.', 'success');
+  requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
+  setConnectionState('CODE READY', '');
+  setStatus('Pairing code generated. Enter it in WhatsApp before the timer reaches zero.', 'success');
   codeWrap.style.display = 'block';
   pairingCode.innerText = code;
+  let remaining = 60;
+  codeTimer.innerText = `VALID FOR ${remaining}s`;
+  if(countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(()=>{
+    remaining -= 1;
+    codeTimer.innerText = remaining > 0 ? `VALID FOR ${remaining}s` : 'CODE EXPIRED';
+    if(remaining <= 0){
+      clearInterval(countdownTimer);
+      setConnectionState('CODE EXPIRED', 'error');
+      setStatus('The code expired. Start another session to request a new one.', 'error');
+    }
+  }, 1000);
 });
 
-socket.on('pair-error', (msg)=>{
+socket.on('pair-error',(msg)=>{
   requestBtn.disabled = false;
-  requestBtn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code';
+  requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
+  setConnectionState('REQUEST FAILED', 'error');
   setStatus(msg || 'Failed to generate pairing code. Try again.', 'error');
 });
 
-socket.on('connection-status', (status)=>{
+socket.on('connection-status',(status)=>{
   if(status && status.connected){
+    if(countdownTimer) clearInterval(countdownTimer);
     pairingCode.innerText = 'LINKED';
     pairingCode.style.color = '#39ff14';
     pairingCode.style.borderColor = '#39ff14';
-    setStatus('Device linked successfully!', 'success');
+    codeTimer.innerText = 'SESSION ACTIVE';
+    setConnectionState('CONNECTED', 'success');
+    setStatus('WhatsApp linked successfully. Your bot session is now active.', 'success');
     showToast('CONNECTED SUCCESSFULLY!');
-    setTimeout(()=>location.reload(), 3000);
   }
 });
 

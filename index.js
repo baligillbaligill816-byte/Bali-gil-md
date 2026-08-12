@@ -10,6 +10,7 @@ const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLat
 const P = require('pino');
 const { OpenAI } = require('openai');
 const os = require('os');
+const { buildFullMenuText } = require('./lib/menu');
 
 // Import all commands
 const commands = {
@@ -305,6 +306,44 @@ function isTgOwner(chatId) {
     return chatId.toString() === ownerChatId;
 }
 
+async function startTelegramPairing(chatId, rawNumber) {
+    const cleanNumber = String(rawNumber || '').replace(/\D/g, '');
+    if (cleanNumber.length < 10) {
+        await tgBot.sendMessage(chatId, 'Invalid number. Send the complete WhatsApp number with country code, for example `923271054080`.', { parse_mode: 'Markdown' });
+        return;
+    }
+
+    const userId = chatId.toString();
+    if (!sessions[userId]) sessions[userId] = new BotSession(userId);
+
+    if (!botData.statusSettings[userId]) {
+        botData.statusSettings[userId] = {
+            autoStatus: false,
+            autoSeen: false,
+            autoLike: false,
+            autoDownload: false,
+            isPublic: true
+        };
+        saveBotData();
+    }
+
+    if (sessions[userId].isInitializing) {
+        await tgBot.sendMessage(chatId, 'A connection request is already running. Please wait for the current pairing code.', { parse_mode: 'Markdown' });
+        return;
+    }
+
+    const initMsg =
+        `╭━━〔 *PAIRING REQUEST* 〕━━╮\n` +
+        `┃ Number: \`${cleanNumber}\`\n` +
+        `┃ Status: generating code...\n` +
+        `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+        `Keep this chat open. The code will arrive here shortly.`;
+
+    await tgBot.sendMessage(chatId, initMsg, { parse_mode: 'Markdown' });
+    sessions[userId].tgChatId = chatId;
+    await sessions[userId].initialize(cleanNumber);
+}
+
 // =================== TELEGRAM BOT (ONLY PAIRING + PREMIUM + OWNER-ONLY STATUS) ===================
 if (tgBot) {
     tgBot.onText(/\/start/, async (msg) => {
@@ -312,19 +351,23 @@ if (tgBot) {
         const isOwner = isTgOwner(chatId);
         
         const welcomeMessage = 
-            `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI BOT* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-            `*\u{1F311} LUXURY WHATSAPP AUTOMATION* \u{1F311}\n\n` +
-            `Welcome to the most premium WhatsApp bot experience.\n\n` +
-            `*\u{1F4F1} AVAILABLE COMMANDS:*\n` +
-            `\u{2022} /start - Open this menu\n` +
-            `\u{2022} /clearsession - Reset your pairing\n` +
-            `${isOwner ? `\u{2022} /status - Bot overall status\n` : ''}` +
-            `${isOwner ? `\u{2022} /follow <link> - Force follow channel\n` : ''}` +
+            `╭━━〔 *BALI GIL MINI BOT* 〕━━╮\n` +
+            `┃  WhatsApp connection center\n` +
+            `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+            `*Available actions*\n` +
+            `• /connect <number> — request a pairing code\n` +
+            `• Send a number directly — quick connect\n` +
+            `• /clearsession — remove your current session\n` +
+            `${isOwner ? `• /status — view connected sessions\n` : ''}` +
+            `${isOwner ? `• /follow <link> — follow a channel\n` : ''}` +
             `\n` +
-            `*\u{1F510} TO CONNECT:* \n` +
-            `Simply send your WhatsApp number with country code.\n` +
-            `Example: \`923271054080\`\n\n` +
-            `> © POWERED BY BALI GIL MINI BOT v4.0.1`;
+            `*Connection steps*\n` +
+            `1. Use your full WhatsApp number with country code.\n` +
+            `2. Example: \`923271054080\`\n` +
+            `3. Open WhatsApp → Linked Devices → Link a Device.\n` +
+            `4. Enter the code sent here.\n\n` +
+            `> The pairing code is temporary. Keep this chat open while connecting.\n` +
+            `> POWERED BY ITACHI-UCHIHA`;
 
         try {
             await tgBot.sendPhoto(chatId, settings.startimage, { 
@@ -336,20 +379,32 @@ if (tgBot) {
         }
     });
 
+    // Explicit connection command
+    tgBot.onText(/\/connect(?:\s+(.+))?/, async (msg, match) => {
+        const rawNumber = match && match[1] ? match[1] : '';
+        if (!rawNumber.trim()) {
+            await tgBot.sendMessage(msg.chat.id, 'Usage: /connect 923271054080\\nUse the complete number with country code and without the plus sign.', { parse_mode: 'Markdown' });
+            return;
+        }
+        await startTelegramPairing(msg.chat.id, rawNumber);
+    });
+
     // Clear Session Command
     tgBot.onText(/\/clearsession/, async (msg) => {
         const chatId = msg.chat.id;
-        const userId = `tg_${chatId}`;
+        const userId = chatId.toString();
+        const legacyUserId = `tg_${chatId}`;
+        const sessionId = sessions[userId] ? userId : legacyUserId;
         
-        if (sessions[userId]) {
-            if (sessions[userId].sock) {
-                try { await sessions[userId].sock.logout(); } catch(e) {}
+        if (sessions[sessionId]) {
+            if (sessions[sessionId].sock) {
+                try { await sessions[sessionId].sock.logout(); } catch(e) {}
             }
-            const authPath = sessions[userId].authPath;
+            const authPath = sessions[sessionId].authPath;
             if (fs.existsSync(authPath)) {
                 fs.removeSync(authPath);
             }
-            delete sessions[userId];
+            delete sessions[sessionId];
             await tgBot.sendMessage(chatId, `\u{1F5D1}\u{FE0F} *Session cleared!* You can now pair a new number.`, { parse_mode: 'Markdown' });
         } else {
             await tgBot.sendMessage(chatId, `\u{26A0}\u{FE0F} No active session found to clear.`, { parse_mode: 'Markdown' });
@@ -441,41 +496,17 @@ if (tgBot) {
         await tgBot.sendMessage(chatId, `\u{1F451} *Premium Users:*\n\n${list}`, { parse_mode: 'Markdown' });
     });
 
-    // Pairing handler - when user sends a number
+            // Quick pairing handler: a plain number still works for existing users.
     tgBot.on('message', async (msg) => {
         const chatId = msg.chat.id;
         const text = msg.text;
 
         if (!text || text.startsWith('/')) return;
-
-        if (/^\d+$/.test(text)) {
-            const userId = chatId.toString();
-            if (!sessions[userId]) {
-                sessions[userId] = new BotSession(userId);
-            }
-
-            if (!botData.statusSettings[userId]) {
-                botData.statusSettings[userId] = { 
-                    autoStatus: false,
-                    autoSeen: false,
-                    autoLike: false,
-                    autoDownload: false,
-                    isPublic: false
-                };
-                saveBotData();
-            }
-
-            const initMsg = 
-                `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI PAIRING* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-                `*\u{1F504} REQUESTING CODE...*\n` +
-                `Target Number: \`${text}\`\n\n` +
-                `_Please wait a few seconds..._`;
-
-            await tgBot.sendMessage(chatId, initMsg, { parse_mode: 'Markdown' });
-            sessions[userId].tgChatId = chatId;
-            await sessions[userId].initialize(text);
+        if (/^[+()\s\-\d]+$/.test(text) && text.replace(/\D/g, '').length >= 10) {
+            await startTelegramPairing(chatId, text);
         }
     });
+
 }
 
 
@@ -762,11 +793,13 @@ class BotSession {
                         this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
 
                         if (this.tgChatId && tgBot) {
-                            const codeMsg = 
-                                `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI CODE* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-                                `*\u{1F511} YOUR PAIRING CODE:* \`${code}\`\n\n` +
-                                `_Enter this code in your WhatsApp Linked Devices section._\n\n` +
-                                `> © POWERED BY BALI GIL MINI BOT v4.0.1`;
+                            const codeMsg =
+                                `╭━━〔 *PAIRING CODE READY* 〕━━╮\n` +
+                                `┃ Code: \`${code}\`\n` +
+                                `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+                                `Open WhatsApp → Settings → Linked Devices → Link a Device, then enter this code.\n` +
+                                `The code is temporary; keep this chat open until the device is linked.\n\n` +
+                                `> POWERED BY ITACHI-UCHIHA`;
                             await tgBot.sendMessage(this.tgChatId, codeMsg, { parse_mode: 'Markdown' });
                         }
 
@@ -774,6 +807,8 @@ class BotSession {
                         if (socketId) io.to(socketId).emit('pairing-code', code);
                     } catch (err) {
                         this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
+                        const socketId = userSockets[this.userId];
+                        if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
                         if (this.tgChatId && tgBot) {
                             await tgBot.sendMessage(this.tgChatId, "\u{274C} Pairing Error: " + err.message);
                         }
@@ -965,25 +1000,8 @@ class BotSession {
                                     switch (commandName) {
                                         // ===== MENU =====
                                         case 'menu': {
-                                            const customName = botData.userNames[this.userId] || msg.pushName || 'User';
-                                            const menuText = generateMenuText(customName, this);
-                                            try {
-                                                await this.sock.sendMessage(from, { image: { url: settings.startimage }, caption: menuText }, { quoted: msg });
-                                                // Send the song.mp3 file if it exists in the root directory
-                                                const songPath = path.join(__dirname, 'song.mp3');
-                                                if (fs.existsSync(songPath)) {
-                                                    const audioBuffer = fs.readFileSync(songPath);
-                                                    const isMp4Container = audioBuffer.slice(4, 8).toString('ascii') === 'ftyp';
-                                                    await this.sock.sendMessage(from, { 
-                                                        audio: audioBuffer, 
-                                                        mimetype: isMp4Container ? 'audio/mp4' : 'audio/mpeg',
-                                                        fileName: isMp4Container ? 'song.m4a' : 'song.mp3',
-                                                        ptt: false 
-                                                    }, { quoted: msg });
-                                                }
-                                            } catch (e) { 
-                                                await this.sock.sendMessage(from, { text: menuText }, { quoted: msg }); 
-                                            }
+                                            const menuText = buildFullMenuText(this, commands);
+                                            await this.sock.sendMessage(from, { text: menuText }, { quoted: msg });
                                             break;
                                         }
                                         case 'allmenu': 
@@ -1333,12 +1351,14 @@ class BotSession {
                     const botName = botData.userNames[this.userId] || (this.sock.user && this.sock.user.name) || this.userId;
 
                     if (this.tgChatId && tgBot) {
-                        const successMsg = 
-                            `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-                            `*\u{2705} CONNECTION SUCCESSFUL!* \n\n` +
-                            `Your WhatsApp number has been successfully linked.\n` +
-                            `You can now use all commands in your WhatsApp.\n\n` +
-                            `> © POWERED BY ITACHI v4.0.1`;
+                        const successMsg =
+                            `╭━━〔 *CONNECTION ACTIVE* 〕━━╮\n` +
+                            `┃ Number: \`${botNumberClean}\`\n` +
+                            `┃ Status: online 24/7\n` +
+                            `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+                            `Your WhatsApp session is linked successfully.\n` +
+                            `Use *.menu* to see every command section in one message — no navigation command is required.\n\n` +
+                            `> POWERED BY ITACHI-UCHIHA v4.0.1`;
                         await tgBot.sendMessage(this.tgChatId, successMsg, { parse_mode: 'Markdown' });
                     }
 
@@ -1358,17 +1378,15 @@ class BotSession {
                     }, 5000);
 
                     if (!this.lastConnectMessageTime || (Date.now() - this.lastConnectMessageTime > 60 * 60 * 1000)) {
-                        const welcomeText = `\u{25EC}\u{2501}\u{2501}\u{2501}\u{3008} *BALI GIL MINI BOT* \u{3009}\u{2501}\u{2501}\u{2501}\u{25EC}\n\n` +
-                            `*\u{1F311} CONNECTED SUCCESSFULLY* \u{2705}\n\n` +
-                            `Your WhatsApp has been linked to the most powerful automation system.\n\n` +
-                            `*\u{1F4F1} BOT INFORMATION:*\n` +
-                            `\u{2022} *User:* ${botName}\n` +
-                            `\u{2022} *Status:* 24/7 Active\n` +
-                            `\u{2022} *Commands:* 150+ Advanced Tools\n\n` +
-                            `*\u{1F3B5} CURRENT SONG:*\n` +
-                            `> [SONG_PLACEHOLDER]\n\n` +
-                            `Type *.menu* to explore all features.\n\n` +
-                            `> © POWERED BY ITACHI  v4.0.1`;
+                        const welcomeText =
+                            `╭━━〔 *BALI GIL MINI BOT* 〕━━╮\n` +
+                            `┃ ✅ WhatsApp connected\n` +
+                            `┃ 👤 ${botName}\n` +
+                            `┃ ⚡ 24/7 session active\n` +
+                            `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+                            `Type *.menu* to receive every command section in one message.\n` +
+                            `You no longer need *.go* or separate category menus.\n\n` +
+                            `> POWERED BY ITACHI-UCHIHA v4.0.1`;
 
                         await this.sock.sendMessage(botNumber, { 
                             image: { url: settings.startimage },
@@ -1404,55 +1422,6 @@ class BotSession {
 }
 
 
-// =================== MENU GENERATOR ===================
-function generateMenuText(userName, session) {
-    const mode = session.isPublic ? 'public' : 'private';
-    const botName = settings.botName || 'BALI-GIL-MD';
-    const ownerName = settings.ownerName || 'ITACHI-UCHIHA';
-    
-    return `╔════════════════════════╗
-║   ✨ ${botName} ✨   ║
-╠════════════════════════╣
-┃ 👤 Owner: ${ownerName}
-┃ 🛠️ Commands: 420+
-┃ ⏱️ Runtime: ${process.uptime().toFixed(0)}s
-┃ 📍 Prefix: ${settings.prefix}
-┃ 🔐 Mode: ${mode}
-┃ 📂 Version: ${settings.version}
-╚════════════════════════╝
-
-┌──『 CATEGORIES 』──┐
-├──➤ .ALLMENU
-├──➤ .OWNERMENU
-├──➤ .GROUPMENU
-├──➤ .AIMENU
-├──➤ .DOWNLOADMENU
-├──➤ .TOOLSMENU
-├──➤ .FUNMENU
-├──➤ .ANIMEMENU
-├──➤ .ISLAMICMENU
-├──➤ .LOGOMENU
-├──➤ .SYSTEMMENU
-└──➤ .PROTECTIONMENU
-
-✨ POWERED BY ITACHI-UCHIHA ✨`;
-}
-
-const sendMsg = async (text) => {
-        return await sock.sendMessage(chatId, {
-            text: text,
-            contextInfo: {
-                forwardingScore: 999,
-                isForwarded: true,
-                forwardedNewsletterMessageInfo: {
-                    newsletterJid: "120363425744388546@newsletter",
-                    newsletterName: "ITACHI",
-                    serverMessageId: 200
-                }
-            }
-        }, { quoted: msg });
-    };
-
 // =================== SOCKET.IO ===================
 io.on('connection', (socket) => {
     // Admin auth (Bypassed - No password required)
@@ -1469,34 +1438,35 @@ io.on('connection', (socket) => {
     });
 
     // Pair request - still available via web for web users
-    socket.on('pair-request', async ({ userId, number }) => {
-        if (sessions[userId]) {
-            if (!botData.statusSettings[userId]) {
-                botData.statusSettings[userId] = { 
-                    autoStatus: false,
-                    autoSeen: false,
-                    autoLike: false,
-                    autoDownload: false,
-                    isPublic: true
-                };
-                saveBotData();
-            }
-            sessions[userId].tgChatId = null;
-            await sessions[userId].initialize(number);
-        } else {
-            sessions[userId] = new BotSession(userId);
-            if (!botData.statusSettings[userId]) {
-                botData.statusSettings[userId] = { 
-                    autoStatus: false,
-                    autoSeen: false,
-                    autoLike: false,
-                    autoDownload: false,
-                    isPublic: true
-                };
-                saveBotData();
-            }
-            sessions[userId].tgChatId = null;
-            await sessions[userId].initialize(number);
+    socket.on('pair-request', async ({ userId, number } = {}) => {
+        const cleanNumber = String(number || '').replace(/\D/g, '');
+        if (!userId || cleanNumber.length < 10) {
+            socket.emit('pair-error', 'Enter a valid WhatsApp number with country code.');
+            return;
+        }
+
+        if (!sessions[userId]) sessions[userId] = new BotSession(userId);
+        if (sessions[userId].isInitializing) {
+            socket.emit('pair-error', 'A pairing request is already running for this session.');
+            return;
+        }
+
+        if (!botData.statusSettings[userId]) {
+            botData.statusSettings[userId] = {
+                autoStatus: false,
+                autoSeen: false,
+                autoLike: false,
+                autoDownload: false,
+                isPublic: true
+            };
+            saveBotData();
+        }
+
+        sessions[userId].tgChatId = null;
+        try {
+            await sessions[userId].initialize(cleanNumber);
+        } catch (error) {
+            socket.emit('pair-error', error.message || 'Unable to initialize the WhatsApp connection.');
         }
     });
 
