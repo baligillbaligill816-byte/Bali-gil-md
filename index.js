@@ -14,6 +14,8 @@ const { buildFullMenuText } = require('./lib/menu');
 
 // Import all commands
 const commands = {
+    ...require('./commands/productivity'),
+    ...require('./commands/texttools'),
     ...require('./commands/extra'),
     // Media & Download
     song: require('./commands/song'),
