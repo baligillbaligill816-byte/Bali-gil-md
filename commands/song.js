@@ -3,6 +3,7 @@ const yts = require('yt-search');
 const fs = require('fs').promises;
 const path = require('path');
 const { toAudio } = require('../lib/converter');
+const { createDownloadProgress } = require('../lib/downloadProgress');
 
 const AXIOS_DEFAULTS = {
     timeout: 60000,
@@ -86,12 +87,9 @@ async function getVredenDownloadByUrl(youtubeUrl) {
 }
 
 async function songCommand(sock, from, message) {
+    let loader;
     try {
-        // Loading reactions
-        const loadEmojis = ['📥', '⏳', '🎵'];
-        for (const emoji of loadEmojis) {
-            await sock.sendMessage(from, { react: { text: emoji, key: message.key } });
-        }
+        await sock.sendMessage(from, { react: { text: '☁️', key: message.key } });
 
         const messageContent = message.message?.ephemeralMessage?.message || message.message?.viewOnceMessage?.message || message.message?.viewOnceMessageV2?.message || message.message;
         const text = (messageContent.conversation || messageContent.extendedTextMessage?.text || messageContent.imageMessage?.caption || messageContent.videoMessage?.caption || '').trim();
@@ -102,17 +100,24 @@ async function songCommand(sock, from, message) {
             return;
         }
 
+        loader = await createDownloadProgress(sock, from, message, {
+            title: query,
+            detail: 'Searching the crimson cloud for an audio source'
+        });
+
         let video;
         if (query.includes('youtube.com') || query.includes('youtu.be')) {
             video = { url: query, title: 'YouTube Audio', thumbnail: 'https://i.postimg.cc/y6GV9P3H/file-000000004c307206bc366893b817568c-(1).png' };
         } else {
             const search = await yts(query);
             if (!search || !search.videos.length) {
-                await sock.sendMessage(from, { text: 'No results found.' }, { quoted: message });
+                await loader.fail('No matching audio source was found');
                 return;
             }
             video = search.videos[0];
         }
+
+        await loader.update('SOURCE FOUND', 35, video.title || 'Reliable audio source selected');
 
         // Inform user
         await sock.sendMessage(from, {
@@ -133,14 +138,17 @@ async function songCommand(sock, from, message) {
             { name: 'Vreden', method: () => getVredenDownloadByUrl(video.url) }
         ];
         
-        for (const apiMethod of apiMethods) {
+        for (let index = 0; index < apiMethods.length; index++) {
+            const apiMethod = apiMethods[index];
             try {
+                await loader.update('RETRIEVING AUDIO', 48 + (index * 7), `Trying ${apiMethod.name}`);
                 const audioData = await apiMethod.method();
                 const audioUrl = audioData.download;
                 finalTitle = audioData.title || video.title;
                 
                 if (!audioUrl) continue;
-                
+                await loader.update('DOWNLOADING AUDIO', 76, 'Fetching the media file');
+
                 const audioResponse = await axios.get(audioUrl, {
                     responseType: 'arraybuffer',
                     timeout: 120000,
@@ -171,6 +179,7 @@ async function songCommand(sock, from, message) {
         else if (audioBuffer.toString('ascii', 0, 4) === 'OggS') fileExtension = 'ogg';
         else if (audioBuffer.toString('ascii', 0, 4) === 'RIFF') fileExtension = 'wav';
 
+        await loader.update('PROCESSING AUDIO', 86, 'Preparing a WhatsApp-compatible file');
         let finalBuffer = audioBuffer;
         if (fileExtension !== 'mp3') {
             try {
@@ -180,16 +189,21 @@ async function songCommand(sock, from, message) {
             }
         }
 
+        await loader.update('SENDING FILE', 94, 'Uploading audio to your chat');
         await sock.sendMessage(from, {
             audio: finalBuffer,
             mimetype: 'audio/mpeg',
             fileName: `${finalTitle.replace(/[^\w\s-]/g, '')}.mp3`,
             ptt: false
         }, { quoted: message });
+        await loader.complete('Audio delivered to your chat');
+        await sock.sendMessage(from, { react: { text: '✅', key: message.key } });
 
     } catch (err) {
         console.error('Song command error:', err);
-        await sock.sendMessage(from, { text: `❌ Error: ${err.message}` }, { quoted: message });
+        if (loader) await loader.fail(err.message);
+        else await sock.sendMessage(from, { text: `❌ Error: ${err.message}` }, { quoted: message });
+        await sock.sendMessage(from, { react: { text: '❌', key: message.key } });
     }
 }
 

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const yts = require('yt-search');
+const { createDownloadProgress } = require('../lib/downloadProgress');
 
 const AXIOS_DEFAULTS = {
     timeout: 60000,
@@ -77,12 +78,9 @@ async function getVredenVideoByUrl(youtubeUrl) {
 }
 
 async function videoCommand(sock, from, message) {
+    let loader;
     try {
-        // Loading reactions
-        const loadEmojis = ['📥', '⏳', '🎥'];
-        for (const emoji of loadEmojis) {
-            await sock.sendMessage(from, { react: { text: emoji, key: message.key } });
-        }
+        await sock.sendMessage(from, { react: { text: '☁️', key: message.key } });
         const messageContent = message.message?.ephemeralMessage?.message || message.message?.viewOnceMessage?.message || message.message?.viewOnceMessageV2?.message || message.message;
         const text = (messageContent.conversation || messageContent.extendedTextMessage?.text || messageContent.imageMessage?.caption || messageContent.videoMessage?.caption || '').trim();
         const query = text.replace(/^\.video\s+/i, '').trim();
@@ -91,6 +89,11 @@ async function videoCommand(sock, from, message) {
             await sock.sendMessage(from, { text: 'Usage: .video <name or link>' }, { quoted: message });
             return;
         }
+
+        loader = await createDownloadProgress(sock, from, message, {
+            title: query,
+            detail: 'Searching the crimson cloud for a video source'
+        });
 
         let videoUrl = '';
         let videoTitle = '';
@@ -102,7 +105,7 @@ async function videoCommand(sock, from, message) {
         } else {
             const { videos } = await yts(query);
             if (!videos || videos.length === 0) {
-                await sock.sendMessage(from, { text: 'No videos found!' }, { quoted: message });
+                await loader.fail('No matching video source was found');
                 return;
             }
             videoUrl = videos[0].url;
@@ -110,6 +113,7 @@ async function videoCommand(sock, from, message) {
             videoThumbnail = videos[0].thumbnail;
         }
 
+        await loader.update('SOURCE FOUND', 35, videoTitle || 'Reliable video source selected');
         await sock.sendMessage(from, {
             image: { url: videoThumbnail || 'https://i.postimg.cc/y6GV9P3H/file-000000004c307206bc366893b817568c-(1).png' },
             caption: `🎥 Downloading: *${videoTitle}*`
@@ -125,8 +129,10 @@ async function videoCommand(sock, from, message) {
             { name: 'Vreden', method: () => getVredenVideoByUrl(videoUrl) }
         ];
         
-        for (const apiMethod of apiMethods) {
+        for (let index = 0; index < apiMethods.length; index++) {
+            const apiMethod = apiMethods[index];
             try {
+                await loader.update('RETRIEVING VIDEO', 50 + (index * 7), `Trying ${apiMethod.name}`);
                 videoData = await apiMethod.method();
                 if (videoData.download) {
                     downloadSuccess = true;
@@ -139,16 +145,21 @@ async function videoCommand(sock, from, message) {
         
         if (!downloadSuccess) throw new Error('All download sources failed.');
 
+        await loader.update('SENDING FILE', 94, 'Uploading video to your chat');
         await sock.sendMessage(from, {
             video: { url: videoData.download },
             mimetype: 'video/mp4',
             fileName: `${videoData.title.replace(/[^\w\s-]/g, '')}.mp4`,
             caption: `*${videoData.title}*\n\n> *Downloaded by BALI-GIL*`
         }, { quoted: message });
+        await loader.complete('Video delivered to your chat');
+        await sock.sendMessage(from, { react: { text: '✅', key: message.key } });
 
     } catch (error) {
         console.error('Video error:', error);
-        await sock.sendMessage(from, { text: `❌ Error: ${error.message}` }, { quoted: message });
+        if (loader) await loader.fail(error.message);
+        else await sock.sendMessage(from, { text: `❌ Error: ${error.message}` }, { quoted: message });
+        await sock.sendMessage(from, { react: { text: '❌', key: message.key } });
     }
 }
 
