@@ -3,32 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITACHI UCHIHA :: TERMINAL</title>
+<title>BALI GIL :: AKATSUKI NODE</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0000;
-    --bg-panel:rgba(20,0,0,0.85);
-    --bg-panel-2:rgba(30,0,0,0.9);
-    --grid:rgba(255,0,0,0.05);
-    --red:#ff0000;
-    --red-dim:#b30000;
-    --red-deep:#660000;
-    --red-glass:rgba(255,0,0,0.08);
-    --border:rgba(255,0,0,0.25);
-    --text:#ffe0e0;
-    --muted:#a35f5f;
-    --amber:#ffd23f;
-    --danger:#ff4d4d;
-    --radius:14px;
+    --bg:#070509;
+    --bg-panel:rgba(15,9,15,0.88);
+    --bg-panel-2:rgba(28,10,18,0.94);
+    --grid:rgba(226,26,56,0.08);
+    --red:#e21b3c;
+    --red-bright:#ff4c68;
+    --red-dim:#8f1027;
+    --red-deep:#31070f;
+    --cloud:#f4ecef;
+    --red-glass:rgba(226,27,60,0.12);
+    --border:rgba(239,104,126,0.28);
+    --text:#fff5f6;
+    --muted:#c38f9b;
+    --amber:#f3b642;
+    --danger:#ff5f72;
+    --radius:16px;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   
   body{
-    background: url('itachi_wallpaper.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background:
+      linear-gradient(130deg, rgba(7,5,9,.92), rgba(25,4,13,.78) 48%, rgba(7,5,9,.95)),
+      url('itachi_wallpaper.jpg') no-repeat center center fixed;
+    background-size:cover;
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
     min-height:100vh;
@@ -76,6 +80,61 @@
   #boot.hide{animation:bootOut .5s ease forwards;}
   @keyframes bootOut{to{opacity:0;visibility:hidden;}}
 
+  /* ---------- Akatsuki 3D loader ---------- */
+  #boot{background:radial-gradient(circle at 50% 42%,#3f0817 0%,#13060d 34%,#070509 75%);overflow:hidden;perspective:1000px;}
+  #boot::before,#boot::after{content:'';position:absolute;width:65vmax;height:65vmax;border-radius:50%;border:1px solid rgba(255,76,104,.12);box-shadow:0 0 80px rgba(226,27,60,.12) inset;transform:translateZ(-180px);}
+  #boot::before{top:-36vmax;left:-22vmax;}
+  #boot::after{right:-25vmax;bottom:-43vmax;}
+  .boot-scene{position:relative;width:min(390px,88vw);min-height:410px;display:flex;flex-direction:column;align-items:center;justify-content:center;transform-style:preserve-3d;animation:sceneFloat 5s ease-in-out infinite;}
+  .boot-cloud{position:absolute;width:160px;height:58px;border:3px solid var(--cloud);border-radius:50%;opacity:.76;filter:drop-shadow(0 0 14px rgba(255,76,104,.42));transform-style:preserve-3d;}
+  .boot-cloud::before,.boot-cloud::after{content:'';position:absolute;border:3px solid var(--cloud);border-radius:50%;background:rgba(35,5,15,.24);}
+  .boot-cloud::before{width:60px;height:60px;left:25px;top:-33px;}
+  .boot-cloud::after{width:80px;height:80px;right:21px;top:-45px;}
+  .cloud-one{top:34px;left:-54px;transform:rotate(-12deg) translateZ(-90px);animation:cloudDrift 8s ease-in-out infinite alternate;}
+  .cloud-two{right:-66px;bottom:90px;transform:rotate(11deg) translateZ(-120px) scale(.82);opacity:.42;animation:cloudDrift 9s ease-in-out -2s infinite alternate-reverse;}
+  .loader-planet{position:relative;width:174px;height:174px;display:grid;place-items:center;transform-style:preserve-3d;}
+  .loader-core{position:absolute;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 34% 28%,#ffced6 0%,#ff5970 12%,#df193b 40%,#650816 72%,#19040a 100%);box-shadow:0 0 20px rgba(255,76,104,.96),0 0 68px rgba(226,27,60,.54),inset -12px -16px 20px rgba(0,0,0,.45);transform:translateZ(28px);animation:corePulse 1.8s ease-in-out infinite;}
+  .loader-core::before{content:'';position:absolute;inset:17px;border:2px solid rgba(255,255,255,.62);border-radius:50%;box-shadow:0 0 10px rgba(255,255,255,.42);}
+  .loader-ring{position:absolute;border:2px solid rgba(255,113,135,.74);border-radius:50%;transform-style:preserve-3d;box-shadow:0 0 16px rgba(226,27,60,.38),inset 0 0 13px rgba(226,27,60,.28);}
+  .loader-ring::after{content:'';position:absolute;width:11px;height:11px;border-radius:50%;background:var(--cloud);box-shadow:0 0 13px var(--cloud);}
+  .ring-one{width:152px;height:60px;transform:rotateX(68deg) rotateZ(-22deg);animation:ringOrbit 3.7s linear infinite;}
+  .ring-one::after{top:-6px;left:30px;}
+  .ring-two{width:162px;height:64px;transform:rotateY(66deg) rotateZ(28deg);animation:ringOrbit 4.8s linear -1.2s infinite reverse;}
+  .ring-two::after{right:34px;bottom:-6px;}
+  .ring-three{width:130px;height:130px;border-color:rgba(255,76,104,.34);transform:rotateX(70deg) rotateY(24deg);animation:ringTilt 5.5s ease-in-out infinite;}
+  .loader-mark{position:relative;z-index:3;font-family:'Share Tech Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--cloud);letter-spacing:.24em;transform:translateZ(58px);text-shadow:0 0 16px rgba(255,255,255,.72);}
+  .boot-copy{position:relative;z-index:4;text-align:center;margin-top:28px;transform:translateZ(40px);}
+  .boot-copy .boot-eyebrow{font-size:.65rem;letter-spacing:.34em;color:var(--red-bright);text-transform:uppercase;}
+  .boot-copy h2{font-family:'Share Tech Mono',monospace;margin:9px 0 6px;font-size:1.1rem;letter-spacing:.13em;color:var(--cloud);}
+  .boot-copy p{font-size:.72rem;color:var(--muted);letter-spacing:.08em;}
+  .boot-progress{width:min(270px,70vw);height:4px;margin:21px auto 0;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;box-shadow:0 0 15px rgba(226,27,60,.2);}
+  .boot-progress span{display:block;width:18%;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--red),#ff9aaa,var(--cloud));box-shadow:0 0 16px var(--red-bright);transition:width .32s ease;}
+  @keyframes sceneFloat{0%,100%{transform:rotateX(2deg) rotateY(-4deg) translateY(0);}50%{transform:rotateX(-2deg) rotateY(5deg) translateY(-10px);}}
+  @keyframes cloudDrift{from{margin-left:-10px;opacity:.36;}to{margin-left:18px;opacity:.86;}}
+  @keyframes corePulse{0%,100%{transform:translateZ(28px) scale(1);filter:saturate(1);}50%{transform:translateZ(38px) scale(1.13);filter:saturate(1.35);}}
+  @keyframes ringOrbit{to{transform:rotateX(68deg) rotateZ(338deg);}}
+  @keyframes ringTilt{0%,100%{transform:rotateX(70deg) rotateY(24deg) rotateZ(0);}50%{transform:rotateX(42deg) rotateY(-30deg) rotateZ(120deg);}}
+
+  /* ---------- Akatsuki visual refinements ---------- */
+  nav{box-shadow:0 12px 36px rgba(0,0,0,.26);}
+  .brand .mark{border-radius:50%;width:44px;height:44px;color:var(--cloud);background:radial-gradient(circle at 32% 25%,var(--red-bright),var(--red-deep) 70%);border-color:rgba(255,165,178,.7);box-shadow:0 0 20px rgba(226,27,60,.52),inset -5px -7px 10px rgba(0,0,0,.38);}
+  .brand .name{letter-spacing:.13em;font-family:'Share Tech Mono',monospace;color:var(--cloud);}
+  .eyebrow{background:rgba(226,27,60,.13);box-shadow:0 8px 24px rgba(0,0,0,.22);}
+  header h1{color:var(--cloud);text-shadow:0 0 6px rgba(255,255,255,.42),0 0 24px rgba(226,27,60,.64);}
+  header h1 .glitch-wrap::before,header h1 .glitch-wrap::after{color:var(--red-bright);}
+  .stat-card,section.panel{border-color:rgba(239,104,126,.3);box-shadow:0 18px 48px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.04);}
+  section.panel::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.03),transparent 28%,rgba(226,27,60,.06));}
+  .feature-item,.connect-card{background:linear-gradient(145deg,rgba(226,27,60,.09),rgba(8,5,10,.22));border-color:rgba(239,104,126,.24);}
+  .feature-item:hover{box-shadow:0 16px 28px rgba(0,0,0,.24),0 0 22px rgba(226,27,60,.18);}
+  .btn{background:linear-gradient(135deg,var(--red-bright),var(--red));color:var(--cloud);box-shadow:0 9px 20px rgba(117,7,28,.28);}
+  .btn:hover{box-shadow:0 0 28px rgba(255,76,104,.5),0 12px 22px rgba(0,0,0,.28);}
+  .btn-outline{color:var(--cloud);border-color:rgba(255,156,172,.62);background:rgba(226,27,60,.05);}
+  .btn-outline:hover{background:rgba(226,27,60,.18);}
+  .connection-chip{background:rgba(226,27,60,.1);border-color:rgba(255,156,172,.5);}
+  .code-box{border-color:var(--red-bright);background:radial-gradient(circle at 50% 0,rgba(226,27,60,.18),rgba(0,0,0,.45) 70%);}
+  footer{background:linear-gradient(180deg,transparent,rgba(16,5,12,.6));}
+  @media (prefers-reduced-motion:reduce){.boot-scene,.boot-cloud,.loader-core,.loader-ring{animation:none!important;}}
+
   /* ---------- Modal ---------- */
   .modal{
     position:fixed;inset:0;background:rgba(1,4,1,.85);backdrop-filter:blur(8px);
@@ -98,10 +157,11 @@
   .modal-head h2::before{content:"root@bali gil:~$ ";color:var(--muted);}
   .modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;}
   .modal-close:hover{color:var(--red);}
-  .modal-
   body{
-    background: url('itachi_wallpaper.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background:
+      linear-gradient(130deg, rgba(7,5,9,.92), rgba(25,4,13,.78) 48%, rgba(7,5,9,.95)),
+      url('itachi_wallpaper.jpg') no-repeat center center fixed;
+    background-size:cover;
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
     min-height:100vh;
@@ -135,7 +195,8 @@
   nav{
     position:fixed;top:0;left:0;right:0;height:74px;z-index:200;
     display:flex;align-items:center;justify-content:space-between;
-    padding:0 32px;background:rgba(2,6,3,.85);backdrop-filter:blur(16px);
+    padding:0 32px;    background:rgba(8,5,10,.88);backdrop-filter:blur(16px);
+
     border-bottom:1px solid var(--border);
   }
   .brand{display:flex;align-items:center;gap:12px;}
@@ -294,7 +355,7 @@
   @media(max-width:768px){
     nav{padding:0 18px;}
     .nav-links{
-      position:fixed;top:74px;left:0;right:0;background:rgba(2,6,3,.97);
+      position:fixed;top:74px;left:0;right:0;background:rgba(8,5,10,.97);
       flex-direction:column;padding:16px;gap:0;border-bottom:1px solid var(--border);
       transform:translateY(-110%);opacity:0;visibility:hidden;transition:.3s;
     }
@@ -312,7 +373,25 @@
 </head>
 <body>
 
-<div id="boot"><pre id="bootText"></pre></div>
+<div id="boot" role="status" aria-live="polite" aria-label="Loading the Akatsuki themed bot dashboard">
+  <div class="boot-scene">
+    <div class="boot-cloud cloud-one"></div>
+    <div class="boot-cloud cloud-two"></div>
+    <div class="loader-planet" aria-hidden="true">
+      <div class="loader-ring ring-one"></div>
+      <div class="loader-ring ring-two"></div>
+      <div class="loader-ring ring-three"></div>
+      <div class="loader-core"></div>
+      <div class="loader-mark">暁</div>
+    </div>
+    <div class="boot-copy">
+      <div class="boot-eyebrow" id="bootEyebrow">Akatsuki interface</div>
+      <h2 id="bootStage">Summoning the crimson cloud</h2>
+      <p id="bootDetail">Preparing the WhatsApp connection layer</p>
+      <div class="boot-progress" aria-hidden="true"><span id="bootProgress"></span></div>
+    </div>
+  </div>
+</div>
 <div class="scanlines"></div>
 <div class="grid-bg"></div>
 <div class="glow-orb"></div>
@@ -340,10 +419,10 @@
 
 <nav>
   <div class="brand">
-    <div class="mark">$_</div>
+    <div class="mark"><i class="fas fa-cloud"></i></div>
     <div>
-      <div class="name">BALI GIL MINI MD</div>
-      <div class="tag">whatsapp automation</div>
+      <div class="name">BALI GIL // AKATSUKI</div>
+      <div class="tag">crimson cloud automation</div>
     </div>
   </div>
   <div class="nav-links" id="navLinks">
@@ -355,9 +434,9 @@
 </nav>
 
 <header>
-  <div class="eyebrow"><span class="pulse"></span> SESSION READY // NODE ONLINE</div>
-  <h1><span class="glitch-wrap" data-text="BALI GIL MINI MD">BALI GIL MINI MD</span></h1>
-  <p class="sub">A fast, minimal WhatsApp automation core — built &amp; maintained by <strong>ITACHI TECH</strong>.</p>
+  <div class="eyebrow"><span class="pulse"></span> CRIMSON CLOUD // NODE ONLINE</div>
+  <h1><span class="glitch-wrap" data-text="AKATSUKI // BALI GIL">AKATSUKI // BALI GIL</span></h1>
+  <p class="sub">A red-cloud inspired WhatsApp automation node — built &amp; maintained by <strong>ITACHI TECH</strong>.</p>
 
   <div class="stats-row">
     <div class="stat-card"><i class="fas fa-signal"></i><div><div class="stat-value" id="activeSockets">0</div><div class="stat-label">Active Sockets</div></div></div>
@@ -367,7 +446,7 @@
 
 <main>
   <section id="features" class="panel" data-label="./features">
-    <h2><i class="fas fa-star"></i> Features</h2>
+    <h2><i class="fas fa-cloud"></i> Crimson Cloud Features</h2>
     <div class="feature-grid">
       <div class="feature-item"><i class="fas fa-reply"></i><h3>Auto Replies</h3><p>Smart automated responses based on customizable triggers.</p></div>
       <div class="feature-item"><i class="fas fa-image"></i><h3>Media Tools</h3><p>Download, convert, and manage media files with ease.</p></div>
@@ -438,33 +517,35 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-/* ---------------- Boot sequence ---------------- */
-const bootLines = [
-  "booting bali gil-mini-md kernel...",
-  "loading whatsapp bridge module... OK",
-  "initializing socket layer... OK",
-  "verifying session store... OK",
-  "welcome, operator."
+/* ---------------- Akatsuki 3D loading sequence ---------------- */
+const boot = document.getElementById('boot');
+const bootEyebrow = document.getElementById('bootEyebrow');
+const bootStage = document.getElementById('bootStage');
+const bootDetail = document.getElementById('bootDetail');
+const bootProgress = document.getElementById('bootProgress');
+const bootSteps = [
+  ['AKATSUKI INTERFACE', 'Summoning the crimson cloud', 'Building the 3D red-cloud gateway', 18],
+  ['WHATSAPP BRIDGE', 'Linking the shinobi relay', 'Opening the live session channel', 42],
+  ['COMMAND MATRIX', 'Loading custom commands', 'Preparing menus, tools, and automation', 68],
+  ['SECURE NODE', 'Verifying connection state', 'Synchronizing protected session data', 86],
+  ['READY', 'The crimson cloud is online', 'Welcome to the Bali Gil Akatsuki node', 100]
 ];
-const bootEl = document.getElementById('bootText');
-let li = 0, ci = 0;
-function typeBoot(){
-  if(li >= bootLines.length){
-    setTimeout(()=>document.getElementById('boot').classList.add('hide'), 400);
-    return;
-  }
-  const line = bootLines[li];
-  if(ci <= line.length){
-    bootEl.innerText = bootLines.slice(0,li).join('\n') + (li>0?'\n':'') + line.slice(0,ci) + ' ';
-    bootEl.innerHTML = bootEl.innerText.replace(/\n/g,'<br>') + '<span class="cursor"></span>';
-    ci++;
-    setTimeout(typeBoot, 18);
+let bootStepIndex = 0;
+function advanceBoot(){
+  const [eyebrow, stage, detail, progress] = bootSteps[bootStepIndex];
+  bootEyebrow.textContent = eyebrow;
+  bootStage.textContent = stage;
+  bootDetail.textContent = detail;
+  bootProgress.style.width = `${progress}%`;
+
+  if(bootStepIndex < bootSteps.length - 1){
+    bootStepIndex += 1;
+    setTimeout(advanceBoot, 520);
   } else {
-    li++; ci = 0;
-    setTimeout(typeBoot, 120);
+    setTimeout(()=>boot.classList.add('hide'), 720);
   }
 }
-typeBoot();
+setTimeout(advanceBoot, 180);
 
 /* ---------------- Particles ---------------- */
 const pWrap = document.getElementById('particles');
