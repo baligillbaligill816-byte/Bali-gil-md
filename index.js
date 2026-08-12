@@ -1006,10 +1006,6 @@ class BotSession {
                                             await this.sock.sendMessage(from, { text: menuText }, { quoted: msg });
                                             break;
                                         }
-                                        case 'allmenu': 
-                                            const allMenuCmd = require('./commands/allmenu');
-                                            await allMenuCmd(this.sock, from, msg, this, commands); 
-                                            break;
                                         case 'ownermenu': {
                                             const text = `┌──『 OWNER MENU 』──┐\n├──➤ PUBLIC\n├──➤ PRIVATE\n├──➤ BLOCK\n├──➤ UNBLOCK\n├──➤ RESTART\n├──➤ SHUTDOWN\n├──➤ BCALL\n└──➤ BCGC\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
