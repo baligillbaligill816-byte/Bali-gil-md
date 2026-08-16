@@ -1,16 +1,13 @@
 [build]
-builder = "NIXPACKS"
-
-[build.setup]
-pkgs = ["nodePackages.pnpm", "ffmpeg", "imagemagick", "webp"]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "npm start"
-healthCheckPath = "/health"
-healthCheckTimeout = 100
+healthcheckPath = "/health"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
-maxRestarts = 10
+restartPolicyMaxRetries = 10
 
 [env]
-PORT = "3000"
 NODE_ENV = "production"

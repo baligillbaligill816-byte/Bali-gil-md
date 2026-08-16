@@ -1,30 +1,36 @@
-# 🚀 Railway Deployment Guide (No Session ID Required)
+# Railway Deployment Guide
 
-This bot has been optimized to deploy directly to Railway. You no longer need to manually generate a `SESSION_ID` before deploying.
+This bot includes a Docker-based Railway deployment configuration. Railway uses the repository `railway.toml` file and `Dockerfile` automatically when a deployment is triggered from this repository.
 
-## 🛠️ Deployment Steps
+## Required Railway variables
 
-1.  **Environment Variables**:
-    In your Railway project settings, add these variables:
-    *   `TELEGRAM_BOT_TOKEN`: Your Telegram Bot Token from @BotFather.
-    *   `OWNER_NUMBER`: Your WhatsApp number with country code (e.g., `923271054080`).
-    *   `OWNER_TELEGRAM_ID`: Your Telegram Chat ID (Get it from @userinfobot).
-    *   `PORT`: `3000`
+Add these variables in the Railway service settings. Do not commit them to `.env` or to the repository:
 
-2.  **Deploy**:
-    Push the updated code to your GitHub repository. Railway will detect the changes and start the deployment.
+- `TELEGRAM_BOT_TOKEN`: Telegram bot token from BotFather.
+- `OWNER_NUMBER`: WhatsApp number with country code, for example `923271054080`.
+- `OWNER_TELEGRAM_ID`: Telegram chat ID used by the bot owner.
+- `OPENAI_API_KEY`: Required only for AI commands that use OpenAI.
 
-3.  **Automatic Pairing**:
-    *   Once the bot starts on Railway, it will detect that no session exists.
-    *   It will automatically request a **Pairing Code** for the `OWNER_NUMBER` you provided.
-    *   The bot will send this code directly to your **Telegram Bot**.
-    *   Open WhatsApp > Linked Devices > Link a Device > Link with phone number instead, and enter the code sent to your Telegram.
+Railway provides the `PORT` variable automatically. The application listens on `process.env.PORT` and falls back to port `3000` for local development.
 
-4.  **Web Dashboard**:
-    You can also access the web dashboard via your Railway public URL to monitor logs or manually trigger pairing.
+## Deploy
 
-## ⚠️ Important Note on Persistence
-Railway's file system is ephemeral. If the bot restarts, it will try to use the `SESSION_ID` environment variable if you set one later. If not, it will simply send a new pairing code to your Telegram to reconnect. 
+1. Create a new Railway project and deploy this GitHub repository.
+2. Confirm that the service uses the repository root as its source directory.
+3. Add the required variables in the Railway service Variables panel.
+4. Trigger a deployment. Railway will use the Dockerfile selected by `railway.toml`.
+5. Verify that the deployment logs show the server listening on the assigned port.
 
-**For 24/7 stability without re-pairing:**
-After you link the bot once, you can use the `session_gen.js` script (provided in the fix package) to generate a `SESSION_ID` and add it to Railway. This will keep the bot logged in forever.
+The configured health check is `GET /health`. A successful response is HTTP `200 OK` with body `OK`.
+
+## WhatsApp pairing
+
+When no saved WhatsApp session exists, the application requests a pairing code using `OWNER_NUMBER` and sends it through the configured Telegram bot. Complete the pairing from WhatsApp Linked Devices while the Telegram chat remains available.
+
+## Persistence
+
+Railway container storage is ephemeral. Without a persistent volume or an externally stored `SESSION_ID`, a restart can require WhatsApp pairing again. The repository does not currently include the `session_gen.js` script previously mentioned in older documentation, so persistent session generation should be implemented separately before relying on it in production.
+
+## Security
+
+Keep `.env`, Telegram tokens, OpenAI keys, and WhatsApp authentication data outside Git. If any credentials were previously committed, rotate them and remove the secrets from the repository history.

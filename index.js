@@ -83,6 +83,7 @@ const commands = {
 
     // AI
     ai: require('./commands/ai'),
+    animedp: require('./commands/animedp').animedp,
 
     // Fun
     joke: require('./commands/joke'),
