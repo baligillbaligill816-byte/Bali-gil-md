@@ -97,6 +97,8 @@ const commands = {
     emojimix: require('./commands/emojimix'),
     character: require('./commands/character'),
     quote: require('./commands/quote'),
+    urdupoetry: require('./commands/urdupoetry').urdupoetry,
+    dpboys: require('./commands/dpboys').dpboys,
     fact: require('./commands/fact'),
     trivia: require('./commands/trivia'),
     coinflip: require('./commands/coinflip'),
@@ -1280,6 +1282,7 @@ class BotSession {
                                         case 'emojimix': await commands.emojimix(this.sock, from, msg); break;
                                         case 'character': await commands.character(this.sock, from, msg); break;
                                         case 'quote': await commands.quote(this.sock, from, msg); break;
+                                        case 'urdupoetry': case 'urdu': case 'shayari': await commands.urdupoetry(this.sock, from, msg, q); break;
                                         case 'fact': await commands.fact(this.sock, from, msg); break;
                                         case 'trivia': await commands.trivia(this.sock, from, msg); break;
                                         case 'coinflip': case 'cf': await commands.coinflip(this.sock, from, msg); break;
@@ -1290,6 +1293,7 @@ class BotSession {
                                         // ===== TOOLS =====
                                         case 'ping': await commands.ping(this.sock, from, msg); break;
                                         case 'dp': await commands.dp(this.sock, from, msg); break;
+                                        case 'dpboys': case 'dpz': case 'boysdp': case 'boydp': await commands.dpboys(this.sock, from, msg); break;
                                         case 'vv': await commands.vv(this.sock, from, msg); break;
                                         case 'translate': case 'trt': await commands.translate(this.sock, from, msg, q); break;
                                         case 'base64': await commands.base64(this.sock, from, msg, q); break;
