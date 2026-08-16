@@ -1110,17 +1110,15 @@ class BotSession {
                             (async () => {
                                 try {
                                     // =================== 120+ COMMAND SWITCH ===================
-                                    switch (commandName) {
-                                        // ===== MENU =====
-                                        case 'menu': case 'allmenu': {
-    const menuText = buildFullMenuText(this, commands);
-    await this.sock.sendMessage(from, {
-        image: { url: "https://lh3.googleusercontent.com/d/18DX3oRbQ1E__z-64MUMOM-mRtmSfsLqr" },
-        caption: menuText
-    }, { quoted: msg });
-    break;
-                                        }
-                                        }
+                                    switch (command) {
+    case 'somecommand': {
+        // ... some code
+    }                        // ← add this closing brace
+
+    case 'ownermenu': {      // ← line 1124, now valid
+        // ...
+    }
+                                    }
                                         case 'ownermenu': {
                                             const text = `┌──『 OWNER MENU 』──┐\n├──➤ PUBLIC\n├──➤ PRIVATE\n├──➤ BLOCK\n├──➤ UNBLOCK\n├──➤ RESTART\n├──➤ SHUTDOWN\n├──➤ BCALL\n└──➤ BCGC\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
                                             await this.sock.sendMessage(from, { text }, { quoted: msg });
