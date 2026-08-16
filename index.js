@@ -1002,7 +1002,7 @@ class BotSession {
                                     // =================== 120+ COMMAND SWITCH ===================
                                     switch (commandName) {
                                         // ===== MENU =====
-                                        case 'menu': {
+                                        case 'menu': case 'allmenu': {
                                             const menuText = buildFullMenuText(this, commands);
                                             await this.sock.sendMessage(from, { text: menuText }, { quoted: msg });
                                             break;
