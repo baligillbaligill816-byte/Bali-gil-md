@@ -803,6 +803,7 @@ class BotSession {
         this.pairingNumber = null;
         this.pairingCode = null;
         this.pairingExpiresAt = null;
+        this.pairingRequested = false;
         this.ghostMode = false;
     }
 
@@ -887,7 +888,7 @@ class BotSession {
                 },
                 printQRInTerminal: false,
                 logger: P({ level: 'fatal' }),
-                browser: ['Bali-gil-md', 'Chrome', '1.0.0'],
+                browser: Browsers.ubuntu('Chrome'),
                 syncFullHistory: false,
                 shouldSyncHistoryMessage: () => false,
                 markOnlineOnConnect: true,
@@ -926,47 +927,9 @@ class BotSession {
             // a creds.update event while requestPairingCode() is running.
             this.sock.ev.on('creds.update', saveCreds);
 
-            if (pairingNumber && !state.creds.registered) {
-                this.pairingCode = null;
-                this.pairingExpiresAt = null;
-                await delay(3000);
-                try {
-                    const code = String(await this.sock.requestPairingCode(pairingNumber))
-                        .replace(/[^A-Za-z0-9]/g, '')
-                        .toUpperCase();
-                    if (code.length !== 8) {
-                        throw new Error('WhatsApp returned an invalid pairing code. Please request a fresh code.');
-                    }
-                    this.pairingCode = code;
-                    this.pairingExpiresAt = Date.now() + (60 * 1000);
-                    this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
-                    this.sendConnectionStatus();
-
-                    if (this.tgChatId && tgBot) {
-                        await sendPairingCodeToTelegram(this.tgChatId, code);
-                    }
-
-                    const socketId = userSockets[this.userId];
-                    if (socketId) {
-                        io.to(socketId).emit('pairing-code', {
-                            code,
-                            sessionId: this.userId,
-                            expiresAt: this.pairingExpiresAt
-                        });
-                    }
-                } catch (err) {
-                    this.isInitializing = false;
-                    this.pairingCode = null;
-                    this.pairingExpiresAt = null;
-                    this.sendConnectionStatus();
-                    this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
-                    const socketId = userSockets[this.userId];
-                    if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
-                    if (this.tgChatId && tgBot) {
-                        await tgBot.sendMessage(this.tgChatId, "\u{274C} Pairing Error: " + err.message);
-                    }
-                }
-            }
+            // Pairing is requested from the connection.update `qr` event below.
+            // The socket is not guaranteed to be ready immediately after creation.
+            this.pairingRequested = false;
 
             this.sock.ev.on('call', async (calls) => {
                 if (botData.antiCall[this.userId]) {
@@ -1449,6 +1412,45 @@ class BotSession {
                 if (qr) {
                     const socketId = userSockets[this.userId];
                     if (socketId) io.to(socketId).emit('qr', qr);
+
+                    if (this.pairingNumber && !state.creds.registered && !this.pairingRequested) {
+                        this.pairingRequested = true;
+                        try {
+                            const code = String(await this.sock.requestPairingCode(this.pairingNumber))
+                                .replace(/[^A-Za-z0-9]/g, '')
+                                .toUpperCase();
+                            if (code.length !== 8) {
+                                throw new Error('WhatsApp returned an invalid pairing code. Please request a fresh code.');
+                            }
+                            this.pairingCode = code;
+                            this.pairingExpiresAt = Date.now() + (60 * 1000);
+                            this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
+                            this.sendConnectionStatus();
+
+                            if (this.tgChatId && tgBot) {
+                                await sendPairingCodeToTelegram(this.tgChatId, code);
+                            }
+
+                            if (socketId) {
+                                io.to(socketId).emit('pairing-code', {
+                                    code,
+                                    sessionId: this.userId,
+                                    expiresAt: this.pairingExpiresAt
+                                });
+                            }
+                        } catch (err) {
+                            this.pairingRequested = false;
+                            this.isInitializing = false;
+                            this.pairingCode = null;
+                            this.pairingExpiresAt = null;
+                            this.sendConnectionStatus();
+                            this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
+                            if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
+                            if (this.tgChatId && tgBot) {
+                                await tgBot.sendMessage(this.tgChatId, "\u{274C} Pairing Error: " + err.message);
+                            }
+                        }
+                    }
                 }
 
                 if (connection === 'close') {
@@ -1457,6 +1459,7 @@ class BotSession {
                     const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
                     this.isConnected = false;
                     this.isInitializing = false;
+                    this.pairingRequested = false;
                     this.sendLog(`Connection closed. Reconnecting: ${shouldReconnect}`, 'warning');
                     this.sendConnectionStatus();
 
