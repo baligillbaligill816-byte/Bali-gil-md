@@ -349,7 +349,12 @@ function isTgOwner(chatId) {
 }
 
 function normalizeWhatsAppNumber(rawNumber) {
-    return String(rawNumber || '').replace(/\D/g, '');
+    const digits = String(rawNumber || '').replace(/\D/g, '');
+    return digits.startsWith('00') ? digits.slice(2) : digits;
+}
+
+function isValidWhatsAppNumber(cleanNumber) {
+    return /^[1-9]\d{9,14}$/.test(cleanNumber);
 }
 
 function sessionIdForNumber(cleanNumber) {
@@ -387,20 +392,21 @@ function resetExpiredPairingAttempt(session) {
 
 async function sendPairingCodeToTelegram(chatId, code) {
     if (!tgBot || !chatId || !code) return;
+    const rawCode = String(code).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     const codeMsg =
         `╭━━〔 *PAIRING CODE READY* 〕━━╮\n` +
-        `┃ Code: \`${code}\`\n` +
+        `┃ Code: \`${rawCode}\`\n` +
         `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
-        `Open WhatsApp → Settings → Linked Devices → Link a Device, then enter this code.\n` +
-        `The code is temporary; keep this chat open until the device is linked.\n\n` +
+        `Open WhatsApp → Settings → Linked Devices → Link with phone number, then enter the 8 characters exactly as shown.\n` +
+        `Do not type spaces or a hyphen. The code is temporary; keep this chat open until the device is linked.\n\n` +
         `> POWERED BY ITACHI-UCHIHA`;
     await tgBot.sendMessage(chatId, codeMsg, { parse_mode: 'Markdown' });
 }
 
 async function startTelegramPairing(chatId, rawNumber) {
     const cleanNumber = normalizeWhatsAppNumber(rawNumber);
-    if (cleanNumber.length < 10) {
-        await tgBot.sendMessage(chatId, 'Invalid number. Send the complete WhatsApp number with country code, for example `923271054080`.', { parse_mode: 'Markdown' });
+    if (!isValidWhatsAppNumber(cleanNumber)) {
+        await tgBot.sendMessage(chatId, 'Invalid number. Send the complete WhatsApp number with country code, without a leading local 0. Example: `923271054080`.', { parse_mode: 'Markdown' });
         return;
     }
 
@@ -925,8 +931,12 @@ class BotSession {
                 this.pairingExpiresAt = null;
                 await delay(3000);
                 try {
-                    let code = await this.sock.requestPairingCode(pairingNumber);
-                    code = code?.match(/.{1,4}/g)?.join('-') || code;
+                    const code = String(await this.sock.requestPairingCode(pairingNumber))
+                        .replace(/[^A-Za-z0-9]/g, '')
+                        .toUpperCase();
+                    if (code.length !== 8) {
+                        throw new Error('WhatsApp returned an invalid pairing code. Please request a fresh code.');
+                    }
                     this.pairingCode = code;
                     this.pairingExpiresAt = Date.now() + (60 * 1000);
                     this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
@@ -1585,8 +1595,8 @@ io.on('connection', (socket) => {
     // Pair request - shares the same persistent session used by Telegram pairing.
     socket.on('pair-request', async ({ number } = {}) => {
         const cleanNumber = normalizeWhatsAppNumber(number);
-        if (cleanNumber.length < 10) {
-            socket.emit('pair-error', 'Enter a valid WhatsApp number with country code.');
+        if (!isValidWhatsAppNumber(cleanNumber)) {
+            socket.emit('pair-error', 'Enter the complete WhatsApp number with country code, without a leading local 0.');
             return;
         }
 

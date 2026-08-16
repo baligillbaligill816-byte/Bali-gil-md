@@ -663,7 +663,7 @@
 
     <div class="code-wrap" id="codeWrap">
       <div class="code-header"><span>PAIRING CODE</span><span id="codeTimer">WAITING</span></div>
-      <div class="code-box" id="pairingCode">0000 0000</div>
+      <div class="code-box" id="pairingCode">00000000</div>
       <div class="copy-hint">Click the code or use the copy button.</div>
       <div class="code-actions"><button class="btn btn-outline" id="copyCodeButton" type="button"><i class="fas fa-copy"></i> Copy Code</button></div>
       <div class="waiting"><span class="dot"></span> Waiting for device to link...</div>
@@ -681,7 +681,7 @@
     <div class="connect-grid">
       <div class="connect-card">
         <div class="card-kicker">TELEGRAM METHOD // RECOMMENDED</div>
-        <p class="deploy-copy"><strong>1.</strong> Open the Telegram bot.<br><strong>2.</strong> Send <span class="deploy-command">/connect 923271054080</span> with your full WhatsApp number.<br><strong>3.</strong> Enter the returned code in WhatsApp → Linked Devices.</p>
+        <p class="deploy-copy"><strong>1.</strong> Open the Telegram bot.<br><strong>2.</strong> Send <span class="deploy-command">/connect 923271054080</span> with your full WhatsApp number.<br><strong>3.</strong> In WhatsApp, open Linked Devices → Link with phone number and enter the 8-character code exactly as shown, without spaces or a hyphen.</p>
         <a id="telegramDeployLink" class="btn deploy-link disabled" href="#deploy" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i> Telegram Bot Link Unavailable</a>
       </div>
       <div class="connect-card">
@@ -811,7 +811,7 @@ function setConnectionState(label, state){
 
 function copyCode(){
   const code = pairingCode.innerText;
-  if(!code || code === '0000 0000' || code === 'LINKED') return;
+  if(!code || code === '00000000' || code === 'LINKED') return;
   navigator.clipboard.writeText(code.replace(/\s/g,'')).then(()=>showToast('CODE COPIED TO CLIPBOARD!'));
 }
 
@@ -820,7 +820,7 @@ function copyCode(){
     currentUserId = null;
     localStorage.removeItem('bali_gil_session_id');
     phoneInput.value = '';
-  pairingCode.innerText = '0000 0000';
+  pairingCode.innerText = '00000000';
   pairingCode.style.color = '';
   pairingCode.style.borderColor = '';
   codeTimer.innerText = 'WAITING';
@@ -838,9 +838,9 @@ resetPairingButton.addEventListener('click', resetPairing);
 
 requestBtn.addEventListener('click', ()=>{
   const number = phoneInput.value.replace(/\D/g,'');
-  if(!number || number.length < 10){
+  if(!/^[1-9]\d{9,14}$/.test(number)){
     setConnectionState('CHECK NUMBER', 'error');
-    setStatus('Enter a valid phone number with country code.', 'error');
+    setStatus('Enter the complete WhatsApp number with country code, without a leading local 0. Example: 923271054080.', 'error');
     phoneInput.focus();
     return;
   }
@@ -854,6 +854,12 @@ requestBtn.addEventListener('click', ()=>{
 
   function showPairingCode(code, expiresAt){
     if(!code) return;
+    code = String(code).replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+    if(code.length !== 8){
+      setConnectionState('INVALID CODE', 'error');
+      setStatus('WhatsApp returned an invalid pairing code. Request a fresh code.', 'error');
+      return;
+    }
     requestBtn.disabled = false;
     requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
     setConnectionState('CODE READY', '');
