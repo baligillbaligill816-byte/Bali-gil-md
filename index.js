@@ -99,6 +99,7 @@ const commands = {
     quote: require('./commands/quote'),
     urdupoetry: require('./commands/urdupoetry').urdupoetry,
     dpboys: require('./commands/dpboys').dpboys,
+    dpgirls: require('./commands/dpgirls').dpgirls,
     fact: require('./commands/fact'),
     trivia: require('./commands/trivia'),
     coinflip: require('./commands/coinflip'),
@@ -1294,6 +1295,7 @@ class BotSession {
                                         case 'ping': await commands.ping(this.sock, from, msg); break;
                                         case 'dp': await commands.dp(this.sock, from, msg); break;
                                         case 'dpboys': case 'dpz': case 'boysdp': case 'boydp': await commands.dpboys(this.sock, from, msg); break;
+                                        case 'dpgirls': case 'girlsdp': case 'girlzdp': case 'girl_dp': await commands.dpgirls(this.sock, from, msg); break;
                                         case 'vv': await commands.vv(this.sock, from, msg); break;
                                         case 'translate': case 'trt': await commands.translate(this.sock, from, msg, q); break;
                                         case 'base64': await commands.base64(this.sock, from, msg, q); break;
