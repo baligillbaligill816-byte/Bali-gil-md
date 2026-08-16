@@ -1113,9 +1113,13 @@ class BotSession {
                                     switch (commandName) {
                                         // ===== MENU =====
                                         case 'menu': case 'allmenu': {
-                                            const menuText = buildFullMenuText(this, commands);
-                                            await this.sock.sendMessage(from, { text: menuText }, { quoted: msg });
-                                            break;
+    const menuText = buildFullMenuText(this, commands);
+    await this.sock.sendMessage(from, {
+        image: { url: "https://lh3.googleusercontent.com/d/18DX3oRbQ1E__z-64MUMOM-mRtmSfsLqr" },
+        caption: menuText
+    }, { quoted: msg });
+    break;
+                                        }
                                         }
                                         case 'ownermenu': {
                                             const text = `┌──『 OWNER MENU 』──┐\n├──➤ PUBLIC\n├──➤ PRIVATE\n├──➤ BLOCK\n├──➤ UNBLOCK\n├──➤ RESTART\n├──➤ SHUTDOWN\n├──➤ BCALL\n└──➤ BCGC\n\n✨ POWERED BY ITACHI-UCHIHA ✨`;
