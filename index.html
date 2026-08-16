@@ -8,31 +8,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#070509;
-    --bg-panel:rgba(15,9,15,0.88);
-    --bg-panel-2:rgba(28,10,18,0.94);
-    --grid:rgba(226,26,56,0.08);
-    --red:#e21b3c;
-    --red-bright:#ff4c68;
-    --red-dim:#8f1027;
-    --red-deep:#31070f;
-    --cloud:#f4ecef;
-    --red-glass:rgba(226,27,60,0.12);
-    --border:rgba(239,104,126,0.28);
-    --text:#fff5f6;
-    --muted:#c38f9b;
-    --amber:#f3b642;
-    --danger:#ff5f72;
-    --radius:16px;
+    --bg:#080a16;
+    --bg-panel:rgba(15,18,36,0.76);
+    --bg-panel-2:rgba(20,22,46,0.92);
+    --grid:rgba(124,140,255,0.11);
+    --red:#ff5574;
+    --red-bright:#ff8ca2;
+    --red-dim:#a42b52;
+    --red-deep:#32132d;
+    --cloud:#f7f5ff;
+    --red-glass:rgba(255,85,116,0.12);
+    --border:rgba(187,195,255,0.2);
+    --text:#f7f8ff;
+    --muted:#a7afd0;
+    --amber:#f7c768;
+    --danger:#ff718d;
+    --violet:#8b7dff;
+    --cyan:#68dcff;
+    --radius:18px;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   
   body{
     background:
-      linear-gradient(130deg, rgba(7,5,9,.92), rgba(25,4,13,.78) 48%, rgba(7,5,9,.95)),
-      url('itachi_wallpaper.jpg') no-repeat center center fixed;
-    background-size:cover;
+      radial-gradient(circle at 12% 8%, rgba(104,220,255,.13), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(139,125,255,.16), transparent 30%),
+      linear-gradient(145deg, #070814 0%, #0d1024 48%, #150b20 100%);
+    background-attachment:fixed;
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
     min-height:100vh;
@@ -159,9 +162,10 @@
   .modal-close:hover{color:var(--red);}
   body{
     background:
-      linear-gradient(130deg, rgba(7,5,9,.92), rgba(25,4,13,.78) 48%, rgba(7,5,9,.95)),
-      url('itachi_wallpaper.jpg') no-repeat center center fixed;
-    background-size:cover;
+      radial-gradient(circle at 12% 8%, rgba(104,220,255,.13), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(139,125,255,.16), transparent 30%),
+      linear-gradient(145deg, #070814 0%, #0d1024 48%, #150b20 100%);
+    background-attachment:fixed;
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
     min-height:100vh;
@@ -253,6 +257,47 @@
   .stat-card i{font-size:1.5rem;color:var(--red);}
   .stat-value{font-size:1.6rem;font-weight:700;color:var(--red);font-family:'Share Tech Mono',monospace;}
   .stat-label{font-size:.72rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+
+  /* ---------- Redesigned command-center layout ---------- */
+  .nav-actions{display:flex;align-items:center;gap:16px;}
+  .nav-status,.hero-signal{display:inline-flex;align-items:center;gap:7px;color:var(--cyan);font-size:.66rem;letter-spacing:1.4px;}
+  .nav-status .pulse,.hero-signal .pulse{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+  .brand .name span{color:var(--red);margin:0 4px;}
+  header{max-width:1180px;margin:0 auto;padding:150px 28px 58px;text-align:left;}
+  .hero-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:34px;align-items:center;}
+  .hero-copy{padding:12px 0 20px;}
+  .hero-copy .eyebrow{margin-bottom:20px;}
+  .hero-copy h1{font-size:clamp(3.2rem,8vw,6.6rem);line-height:.95;letter-spacing:.04em;margin-bottom:24px;}
+  .hero-copy p.sub{max-width:690px;font-size:1rem;line-height:1.85;margin:0;}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px;}
+  .hero-button{width:auto;min-width:190px;}
+  .hero-card{position:relative;overflow:hidden;padding:26px;border:1px solid rgba(139,125,255,.38);border-radius:24px;background:linear-gradient(145deg,rgba(30,35,72,.88),rgba(18,13,38,.72));box-shadow:0 24px 70px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.08);}
+  .hero-card::before{content:'';position:absolute;width:180px;height:180px;right:-60px;top:-60px;border-radius:50%;background:rgba(104,220,255,.14);filter:blur(3px);}
+  .hero-card-top,.hero-card-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;z-index:1;}
+  .hero-card .card-kicker{color:var(--cyan);margin:0;}
+  .hero-mark{display:grid;place-items:center;width:92px;height:92px;margin:34px 0 20px;border:1px solid rgba(255,140,162,.65);border-radius:28px;color:var(--cloud);font-family:'Share Tech Mono',monospace;font-size:2.8rem;background:radial-gradient(circle at 34% 25%,rgba(255,140,162,.85),rgba(123,39,90,.42) 58%,rgba(5,8,24,.9));box-shadow:0 0 38px rgba(255,85,116,.26),inset -10px -12px 20px rgba(0,0,0,.32);position:relative;z-index:1;}
+  .hero-card-title{font-family:'Share Tech Mono',monospace;font-size:1.35rem;letter-spacing:.06em;position:relative;z-index:1;}
+  .hero-card p{margin-top:10px;color:var(--muted);font-size:.78rem;line-height:1.75;position:relative;z-index:1;}
+  .hero-card-foot{margin-top:24px;padding-top:16px;border-top:1px solid rgba(187,195,255,.16);color:var(--muted);font-size:.64rem;position:relative;z-index:1;}
+  .hero-card-foot i{color:var(--cyan);margin-right:5px;}
+  .stats-row{justify-content:flex-start;gap:14px;margin-top:42px;}
+  .stat-card{flex:1;min-width:210px;justify-content:flex-start;padding:17px 20px;background:rgba(15,18,36,.62);}
+  .stat-card i{color:var(--cyan);}
+  .stat-value{color:var(--cloud);font-size:1.45rem;}
+  .stat-trend{margin-left:auto;color:var(--cyan);font-size:.6rem;letter-spacing:1.2px;}
+  .stat-card-wide{flex:1.2;}
+  main{max-width:1180px;padding:18px 28px 48px;}
+  section.panel{margin:20px 0;padding:32px;background:linear-gradient(145deg,rgba(19,23,47,.72),rgba(14,12,30,.82));box-shadow:0 18px 60px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.04);}
+  section.panel::before{background:var(--bg);color:var(--cyan);}
+  section.panel h2{color:var(--cloud);font-size:1.15rem;}
+  section.panel h2 i{color:var(--red);}
+  .feature-item,.connect-card{background:rgba(8,10,26,.42);border-color:rgba(187,195,255,.16);}
+  .feature-item i{color:var(--cyan);}
+  .feature-item:hover{border-color:var(--cyan);background:rgba(104,220,255,.08);}
+  .input-group input{background:rgba(5,7,18,.55);border-color:rgba(187,195,255,.25);}
+  .input-group input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(104,220,255,.12);}
+  .code-box{background:radial-gradient(circle at 50% 0,rgba(139,125,255,.18),rgba(5,7,18,.65) 70%);}
+  .deploy-command{color:var(--cyan);}
 
   /* ---------- Main sections ---------- */
   main{max-width:1080px;margin:0 auto;padding:20px 20px 40px;}
@@ -370,12 +415,73 @@
     .nav-links.active{transform:translateY(0);opacity:1;visibility:visible;}
     .nav-links a{padding:14px;width:100%;text-align:center;border-bottom:1px solid rgba(255,0,0,.08);}
     .nav-toggle{display:block;}
-    header{padding:120px 16px 50px;}
+    header{padding:118px 18px 42px;}
+    .hero-layout{grid-template-columns:1fr;gap:24px;}
+    .hero-copy h1{font-size:clamp(2.8rem,16vw,5rem);}
+    .hero-copy p.sub{font-size:.86rem;}
+    .hero-actions{flex-direction:column;}
+    .hero-button{width:100%;}
+    .hero-card{padding:22px;}
+    .hero-card-foot{align-items:flex-start;flex-direction:column;gap:8px;}
+    .stats-row{display:grid;grid-template-columns:1fr;gap:10px;margin-top:28px;}
+    .stat-card,.stat-card-wide{min-width:0;width:100%;}
+    main{padding:12px 18px 36px;}
     section.panel{padding:24px 18px;}
     .connect-head{flex-direction:column;}
     .connect-grid{grid-template-columns:1fr;}
     .connection-chip{align-self:flex-start;}
     .code-box{font-size:1.4rem;letter-spacing:5px;}
+  }
+  /* ---------- Final dashboard refresh overrides ---------- */
+  body{background:radial-gradient(circle at 12% 8%,rgba(104,220,255,.13),transparent 28%),radial-gradient(circle at 88% 18%,rgba(139,125,255,.16),transparent 30%),linear-gradient(145deg,#070814 0%,#0d1024 48%,#150b20 100%);background-attachment:fixed;}
+  nav{background:rgba(8,10,24,.76);border-bottom-color:rgba(187,195,255,.2);}
+  header{max-width:1180px;margin:0 auto;padding:150px 28px 58px;text-align:left;}
+  .hero-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:34px;align-items:center;}
+  .hero-copy{padding:12px 0 20px;}
+  .hero-copy h1{font-size:clamp(3.2rem,8vw,6.6rem);line-height:.95;letter-spacing:.04em;margin-bottom:24px;}
+  .hero-copy p.sub{max-width:690px;font-size:1rem;line-height:1.85;margin:0;}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px;}
+  .hero-button{width:auto;min-width:190px;}
+  .hero-card{position:relative;overflow:hidden;padding:26px;border:1px solid rgba(139,125,255,.38);border-radius:24px;background:linear-gradient(145deg,rgba(30,35,72,.88),rgba(18,13,38,.72));box-shadow:0 24px 70px rgba(0,0,0,.32),inset 0 1px rgba(255,255,255,.08);}
+  .hero-card-top,.hero-card-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;z-index:1;}
+  .hero-card .card-kicker{color:var(--cyan);margin:0;}
+  .hero-card p{margin-top:10px;color:var(--muted);font-size:.78rem;line-height:1.75;position:relative;z-index:1;}
+  .hero-card-foot{margin-top:24px;padding-top:16px;border-top:1px solid rgba(187,195,255,.16);color:var(--muted);font-size:.64rem;}
+  .hero-card-foot i{color:var(--cyan);margin-right:5px;}
+  .nav-actions{display:flex;align-items:center;gap:16px;}
+  .nav-status,.hero-signal{display:inline-flex;align-items:center;gap:7px;color:var(--cyan);font-size:.66rem;letter-spacing:1.4px;}
+  .nav-status .pulse,.hero-signal .pulse{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+  .stats-row{justify-content:flex-start;gap:14px;margin-top:42px;}
+  .stat-card{flex:1;min-width:210px;justify-content:flex-start;padding:17px 20px;background:rgba(15,18,36,.62);}
+  .stat-card i{color:var(--cyan);}
+  .stat-value{color:var(--cloud);font-size:1.45rem;}
+  .stat-trend{margin-left:auto;color:var(--cyan);font-size:.6rem;letter-spacing:1.2px;}
+  .stat-card-wide{flex:1.2;}
+  main{max-width:1180px;margin:0 auto;padding:18px 28px 48px;}
+  section.panel{margin:20px 0;padding:32px;background:linear-gradient(145deg,rgba(19,23,47,.72),rgba(14,12,30,.82));box-shadow:0 18px 60px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.04);}
+  section.panel::before{background:var(--bg);color:var(--cyan);}
+  section.panel h2{color:var(--cloud);font-size:1.15rem;}
+  section.panel h2 i{color:var(--red);}
+  .feature-item,.connect-card{background:rgba(8,10,26,.42);border-color:rgba(187,195,255,.16);}
+  .feature-item i{color:var(--cyan);}
+  .feature-item:hover{border-color:var(--cyan);background:rgba(104,220,255,.08);}
+  .input-group input{background:rgba(5,7,18,.55);border-color:rgba(187,195,255,.25);}
+  .input-group input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(104,220,255,.12);}
+  .code-box{background:radial-gradient(circle at 50% 0,rgba(139,125,255,.18),rgba(5,7,18,.65) 70%);}
+  .deploy-command{color:var(--cyan);}
+  @media(max-width:768px){
+    nav{padding:0 18px;}
+    header{padding:118px 18px 42px;}
+    .hero-layout{grid-template-columns:1fr;gap:24px;}
+    .hero-copy h1{font-size:clamp(2.8rem,16vw,5rem);}
+    .hero-copy p.sub{font-size:.86rem;}
+    .hero-actions{flex-direction:column;}
+    .hero-button{width:100%;}
+    .hero-card{padding:22px;}
+    .hero-card-foot{align-items:flex-start;flex-direction:column;gap:8px;}
+    .stats-row{display:grid;grid-template-columns:1fr;gap:10px;margin-top:28px;}
+    .stat-card,.stat-card-wide{min-width:0;width:100%;}
+    main{padding:12px 18px 36px;}
   }
 </style>
 </head>
@@ -428,27 +534,45 @@
   <div class="brand">
     <div class="mark"><i class="fas fa-cloud"></i></div>
     <div>
-      <div class="name">BALI GIL // AKATSUKI</div>
-      <div class="tag">crimson cloud automation</div>
+      <div class="name">BALI GIL <span>/</span> COMMAND CENTER</div>
+      <div class="tag">whatsapp automation node</div>
     </div>
   </div>
   <div class="nav-links" id="navLinks">
-    <a href="#features">features</a>
-    <a href="#connect">connect</a>
-    <a href="#deploy">deploy</a>
-    <a href="#links">links</a>
+    <a href="#features">overview</a>
+    <a href="#connect">link device</a>
+    <a href="#deploy">telegram</a>
+    <a href="#links">resources</a>
   </div>
-  <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
+  <div class="nav-actions">
+    <span class="nav-status"><span class="pulse"></span> ONLINE</span>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation"><i class="fas fa-bars"></i></button>
+  </div>
 </nav>
 
 <header>
-  <div class="eyebrow"><span class="pulse"></span> CRIMSON CLOUD // NODE ONLINE</div>
-  <h1><span class="glitch-wrap" data-text="AKATSUKI // BALI GIL">AKATSUKI // BALI GIL</span></h1>
-  <p class="sub">A red-cloud inspired WhatsApp automation node — built &amp; maintained by <strong>ITACHI TECH</strong>.</p>
-
+  <div class="hero-layout">
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="pulse"></span> CRIMSON CLOUD // NODE ONLINE</div>
+      <h1><span class="glitch-wrap" data-text="BALI GIL">BALI GIL</span></h1>
+      <p class="sub">A focused control surface for linking WhatsApp, managing sessions, and deploying through Telegram — built and maintained by <strong>ITACHI TECH</strong>.</p>
+      <div class="hero-actions">
+        <a class="btn hero-button" href="#connect"><i class="fas fa-link"></i> Link WhatsApp</a>
+        <a class="btn btn-outline hero-button" href="#deploy"><i class="fab fa-telegram"></i> Deploy with Telegram</a>
+      </div>
+    </div>
+    <div class="hero-card" aria-label="Live node summary">
+      <div class="hero-card-top"><span class="card-kicker">LIVE NODE // 01</span><span class="hero-signal"><span class="pulse"></span> STABLE</span></div>
+      <div class="hero-mark">暁</div>
+      <div class="hero-card-title">One place to connect.</div>
+      <p>Start from the browser or Telegram. Both routes use the same persistent WhatsApp session.</p>
+      <div class="hero-card-foot"><span><i class="fas fa-lock"></i> secure session flow</span><span><i class="fas fa-bolt"></i> fast pairing</span></div>
+    </div>
+  </div>
   <div class="stats-row">
-    <div class="stat-card"><i class="fas fa-signal"></i><div><div class="stat-value" id="activeSockets">0</div><div class="stat-label">Active Sockets</div></div></div>
-    <div class="stat-card"><i class="fas fa-users"></i><div><div class="stat-value" id="totalUsers">0</div><div class="stat-label">Total Users</div></div></div>
+    <div class="stat-card"><i class="fas fa-signal"></i><div><div class="stat-value" id="activeSockets">0</div><div class="stat-label">Active Sockets</div></div><span class="stat-trend">LIVE</span></div>
+    <div class="stat-card"><i class="fas fa-users"></i><div><div class="stat-value" id="totalUsers">0</div><div class="stat-label">Total Users</div></div><span class="stat-trend">SYNCED</span></div>
+    <div class="stat-card stat-card-wide"><i class="fas fa-shield-halved"></i><div><div class="stat-value">24/7</div><div class="stat-label">Session Monitoring</div></div><span class="stat-trend">READY</span></div>
   </div>
 </header>
 
