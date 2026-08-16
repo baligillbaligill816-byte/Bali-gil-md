@@ -690,6 +690,28 @@ requestBtn.addEventListener('click', ()=>{
     socket.emit('pair-request', { number });
 });
 
+  function showPairingCode(code, expiresAt){
+    if(!code) return;
+    requestBtn.disabled = false;
+    requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
+    setConnectionState('CODE READY', '');
+    setStatus('Pairing code generated. Enter it in WhatsApp before the timer reaches zero.', 'success');
+    codeWrap.style.display = 'block';
+    pairingCode.innerText = code;
+    let remaining = Math.max(1, Math.ceil(((expiresAt || (Date.now() + 60000)) - Date.now()) / 1000));
+    codeTimer.innerText = `VALID FOR ${remaining}s`;
+    if(countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(()=>{
+      remaining -= 1;
+      codeTimer.innerText = remaining > 0 ? `VALID FOR ${remaining}s` : 'CODE EXPIRED';
+      if(remaining <= 0){
+        clearInterval(countdownTimer);
+        setConnectionState('CODE EXPIRED', 'error');
+        setStatus('The code expired. Start another session to request a new one.', 'error');
+      }
+    }, 1000);
+  }
+
   socket.on('pairing-code',(payload)=>{
     const code = typeof payload === 'string' ? payload : payload?.code;
     if(!code) return;
@@ -697,25 +719,8 @@ requestBtn.addEventListener('click', ()=>{
       currentUserId = payload.sessionId;
       localStorage.setItem('bali_gil_session_id', currentUserId);
     }
-    requestBtn.disabled = false;
-  requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
-  setConnectionState('CODE READY', '');
-  setStatus('Pairing code generated. Enter it in WhatsApp before the timer reaches zero.', 'success');
-  codeWrap.style.display = 'block';
-  pairingCode.innerText = code;
-  let remaining = 60;
-  codeTimer.innerText = `VALID FOR ${remaining}s`;
-  if(countdownTimer) clearInterval(countdownTimer);
-  countdownTimer = setInterval(()=>{
-    remaining -= 1;
-    codeTimer.innerText = remaining > 0 ? `VALID FOR ${remaining}s` : 'CODE EXPIRED';
-    if(remaining <= 0){
-      clearInterval(countdownTimer);
-      setConnectionState('CODE EXPIRED', 'error');
-      setStatus('The code expired. Start another session to request a new one.', 'error');
-    }
-  }, 1000);
-});
+    showPairingCode(code, payload?.expiresAt);
+  });
 
 socket.on('pair-error',(msg)=>{
   requestBtn.disabled = false;
@@ -734,16 +739,18 @@ socket.on('pair-error',(msg)=>{
       localStorage.setItem('bali_gil_session_id', currentUserId);
     }
     if(status && status.connected){
-    if(countdownTimer) clearInterval(countdownTimer);
-    pairingCode.innerText = 'LINKED';
-    pairingCode.style.color = '#39ff14';
-    pairingCode.style.borderColor = '#39ff14';
-    codeTimer.innerText = 'SESSION ACTIVE';
-    setConnectionState('CONNECTED', 'success');
-    setStatus('WhatsApp linked successfully. Your bot session is now active.', 'success');
-    showToast('CONNECTED SUCCESSFULLY!');
-  }
-});
+      if(countdownTimer) clearInterval(countdownTimer);
+      pairingCode.innerText = 'LINKED';
+      pairingCode.style.color = '#39ff14';
+      pairingCode.style.borderColor = '#39ff14';
+      codeTimer.innerText = 'SESSION ACTIVE';
+      setConnectionState('CONNECTED', 'success');
+      setStatus('WhatsApp linked successfully. Your bot session is now active.', 'success');
+      showToast('CONNECTED SUCCESSFULLY!');
+    } else if(status?.pairingCode){
+      showPairingCode(status.pairingCode, status.pairingExpiresAt);
+    }
+  });
 
   function setRuntimeLink(elementId, url, readyLabel){
     const link = document.getElementById(elementId);

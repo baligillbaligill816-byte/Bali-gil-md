@@ -370,6 +370,18 @@ function getSessionForNumber(cleanNumber) {
     return { session: sessions[canonicalId], sessionId: canonicalId };
 }
 
+async function sendPairingCodeToTelegram(chatId, code) {
+    if (!tgBot || !chatId || !code) return;
+    const codeMsg =
+        `╭━━〔 *PAIRING CODE READY* 〕━━╮\n` +
+        `┃ Code: \`${code}\`\n` +
+        `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+        `Open WhatsApp → Settings → Linked Devices → Link a Device, then enter this code.\n` +
+        `The code is temporary; keep this chat open until the device is linked.\n\n` +
+        `> POWERED BY ITACHI-UCHIHA`;
+    await tgBot.sendMessage(chatId, codeMsg, { parse_mode: 'Markdown' });
+}
+
 async function startTelegramPairing(chatId, rawNumber) {
     const cleanNumber = normalizeWhatsAppNumber(rawNumber);
     if (cleanNumber.length < 10) {
@@ -391,7 +403,13 @@ async function startTelegramPairing(chatId, rawNumber) {
     }
 
     if (session.isInitializing) {
-        await tgBot.sendMessage(chatId, 'A connection request is already running. Please wait for the current pairing code.', { parse_mode: 'Markdown' });
+        session.tgChatId = chatId;
+        const pairingActive = Boolean(session.pairingCode && session.pairingExpiresAt && Date.now() < session.pairingExpiresAt);
+        if (pairingActive) {
+            await sendPairingCodeToTelegram(chatId, session.pairingCode);
+        } else {
+            await tgBot.sendMessage(chatId, 'A connection request is already running. The pairing code will be sent here as soon as it is ready.', { parse_mode: 'Markdown' });
+        }
         return;
     }
 
@@ -775,14 +793,15 @@ class BotSession {
 
     sendConnectionStatus() {
         const socketId = userSockets[this.userId];
+        const pairingActive = Boolean(this.pairingCode && this.pairingExpiresAt && Date.now() < this.pairingExpiresAt);
         if (socketId) {
             io.to(socketId).emit('connection-status', {
                 connected: this.isConnected,
                 user: this.userId,
                 sessionId: this.userId,
                 phoneNumber: this.phoneNumber || null,
-                pairingCode: this.pairingCode || null,
-                pairingExpiresAt: this.pairingExpiresAt || null
+                pairingCode: pairingActive ? this.pairingCode : null,
+                pairingExpiresAt: pairingActive ? this.pairingExpiresAt : null
             });
         }
         io.emit('total-active', Object.values(sessions).filter(s => s.isConnected).length);
@@ -827,7 +846,7 @@ class BotSession {
         }, 60 * 60 * 1000);
     }
 
-    async initialize(pairingNumber = null) {
+    async initialize(pairingNumber = this.pairingNumber) {
         if (this.isInitializing) {
             this.sendLog("Initialization already in progress...", "info");
             return;
@@ -881,48 +900,41 @@ class BotSession {
                 generateHighQualityLinkPreview: true,
             });
 
+            // Attach credential persistence before pairing-code generation. Baileys emits
+            // a creds.update event while requestPairingCode() is running.
+            this.sock.ev.on('creds.update', saveCreds);
+
             if (pairingNumber && !state.creds.registered) {
-                if (!this.sock.authState.creds.registered) {
-                    await delay(3000);
-                    try {
-                        let code = await this.sock.requestPairingCode(pairingNumber);
-                        code = code?.match(/.{1,4}/g)?.join('-') || code;
-                        this.pairingCode = code;
-                        this.pairingExpiresAt = Date.now() + (60 * 1000);
-                        this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
-                        this.sendConnectionStatus();
+                await delay(3000);
+                try {
+                    let code = await this.sock.requestPairingCode(pairingNumber);
+                    code = code?.match(/.{1,4}/g)?.join('-') || code;
+                    this.pairingCode = code;
+                    this.pairingExpiresAt = Date.now() + (60 * 1000);
+                    this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
+                    this.sendConnectionStatus();
 
-                        if (this.tgChatId && tgBot) {
-                            const codeMsg =
-                                `╭━━〔 *PAIRING CODE READY* 〕━━╮\n` +
-                                `┃ Code: \`${code}\`\n` +
-                                `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
-                                `Open WhatsApp → Settings → Linked Devices → Link a Device, then enter this code.\n` +
-                                `The code is temporary; keep this chat open until the device is linked.\n\n` +
-                                `> POWERED BY ITACHI-UCHIHA`;
-                            await tgBot.sendMessage(this.tgChatId, codeMsg, { parse_mode: 'Markdown' });
-                        }
+                    if (this.tgChatId && tgBot) {
+                        await sendPairingCodeToTelegram(this.tgChatId, code);
+                    }
 
-                        const socketId = userSockets[this.userId];
-                        if (socketId) {
-                            io.to(socketId).emit('pairing-code', {
-                                code,
-                                sessionId: this.userId,
-                                expiresAt: this.pairingExpiresAt
-                            });
-                        }
-                    } catch (err) {
-                        this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
-                        const socketId = userSockets[this.userId];
-                        if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
-                        if (this.tgChatId && tgBot) {
-                            await tgBot.sendMessage(this.tgChatId, "\u{274C} Pairing Error: " + err.message);
-                        }
+                    const socketId = userSockets[this.userId];
+                    if (socketId) {
+                        io.to(socketId).emit('pairing-code', {
+                            code,
+                            sessionId: this.userId,
+                            expiresAt: this.pairingExpiresAt
+                        });
+                    }
+                } catch (err) {
+                    this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
+                    const socketId = userSockets[this.userId];
+                    if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
+                    if (this.tgChatId && tgBot) {
+                        await tgBot.sendMessage(this.tgChatId, "\u{274C} Pairing Error: " + err.message);
                     }
                 }
             }
-
-            this.sock.ev.on('creds.update', saveCreds);
 
             this.sock.ev.on('call', async (calls) => {
                 if (botData.antiCall[this.userId]) {
@@ -1405,12 +1417,13 @@ class BotSession {
                 }
 
                 if (connection === 'close') {
-                    const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut;
+                    const disconnectError = lastDisconnect?.error;
+                    const statusCode = disconnectError?.output?.statusCode || disconnectError?.data?.statusCode;
+                    const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
                     this.isConnected = false;
                     this.isInitializing = false;
                     this.sendLog(`Connection closed. Reconnecting: ${shouldReconnect}`, 'warning');
                     this.sendConnectionStatus();
-                    const statusCode = (lastDisconnect.error)?.output?.statusCode;
 
                     if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
                         this.sendLog('Session expired or logged out. Clearing auth data...', 'error');
@@ -1566,7 +1579,12 @@ io.on('connection', (socket) => {
             return;
         }
         if (session.isInitializing) {
-            socket.emit('pair-error', 'A pairing request is already running for this WhatsApp number.');
+            const pairingActive = Boolean(session.pairingCode && session.pairingExpiresAt && Date.now() < session.pairingExpiresAt);
+            if (pairingActive) {
+                session.sendConnectionStatus();
+            } else {
+                socket.emit('pair-error', 'A pairing request is already running. The code will appear here when it is ready.');
+            }
             return;
         }
 
