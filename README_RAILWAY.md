@@ -21,7 +21,6 @@ Railway provides the `PORT` variable automatically. The application listens on `
 4. Trigger a deployment. Railway will use the Dockerfile selected by `railway.json`.
 5. Verify that the deployment logs show the server listening on the assigned port.
 
-The configured health check is `GET /health`. A successful response is HTTP `200 OK` with body `OK`.
 
 ## WhatsApp pairing
 
