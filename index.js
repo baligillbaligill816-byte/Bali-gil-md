@@ -373,6 +373,18 @@ function getSessionForNumber(cleanNumber) {
     return { session: sessions[canonicalId], sessionId: canonicalId };
 }
 
+function resetExpiredPairingAttempt(session) {
+    if (!session || session.isConnected) return false;
+    const expired = session.pairingExpiresAt && Date.now() >= session.pairingExpiresAt;
+    if (!session.isInitializing || !expired) return false;
+
+    session.isInitializing = false;
+    session.pairingCode = null;
+    session.pairingExpiresAt = null;
+    session.sendConnectionStatus();
+    return true;
+}
+
 async function sendPairingCodeToTelegram(chatId, code) {
     if (!tgBot || !chatId || !code) return;
     const codeMsg =
@@ -405,6 +417,7 @@ async function startTelegramPairing(chatId, rawNumber) {
         saveBotData();
     }
 
+    resetExpiredPairingAttempt(session);
     if (session.isInitializing) {
         session.tgChatId = chatId;
         const pairingActive = Boolean(session.pairingCode && session.pairingExpiresAt && Date.now() < session.pairingExpiresAt);
@@ -908,6 +921,8 @@ class BotSession {
             this.sock.ev.on('creds.update', saveCreds);
 
             if (pairingNumber && !state.creds.registered) {
+                this.pairingCode = null;
+                this.pairingExpiresAt = null;
                 await delay(3000);
                 try {
                     let code = await this.sock.requestPairingCode(pairingNumber);
@@ -930,6 +945,10 @@ class BotSession {
                         });
                     }
                 } catch (err) {
+                    this.isInitializing = false;
+                    this.pairingCode = null;
+                    this.pairingExpiresAt = null;
+                    this.sendConnectionStatus();
                     this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
                     const socketId = userSockets[this.userId];
                     if (socketId) io.to(socketId).emit('pair-error', `Pairing failed: ${err.message}`);
@@ -1584,6 +1603,7 @@ io.on('connection', (socket) => {
             });
             return;
         }
+        resetExpiredPairingAttempt(session);
         if (session.isInitializing) {
             const pairingActive = Boolean(session.pairingCode && session.pairingExpiresAt && Date.now() < session.pairingExpiresAt);
             if (pairingActive) {
