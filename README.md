@@ -91,20 +91,17 @@ npm start
 
 | Variable | Description |
 |----------|-------------|
-| TELEGRAM_BOT_TOKEN | Bot token from @BotFather |
-| OWNER_NUMBER | Your WhatsApp number |
-| OWNER_TELEGRAM_ID | Your Telegram ID |
-| OPENAI_API_KEY | OpenAI API key (optional) |
-| ADMIN_PASSWORD | Dashboard password |
-| PORT | Web dashboard port |
-| SUDO | (Optional) Comma/semicolon/newline separated list or JSON array of WhatsApp numbers to grant sudo privileges. Examples:
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather; required for Telegram deployment control |
+| `TELEGRAM_BOT_USERNAME` | Telegram bot username without `@`; used for public website links |
+| `OWNER_NUMBER` | WhatsApp number with country code |
+| `OWNER_TELEGRAM_ID` | Telegram owner chat ID |
+| `PUBLIC_URL` | Public Railway URL shown by the dashboard and `.repo` |
+| `OPENAI_API_KEY` | OpenAI API key (optional) |
+| `PORT` | Web dashboard port; supplied automatically by Railway |
+| `SUDO` | Optional comma/semicolon/newline-separated WhatsApp numbers with sudo privileges |
+| `BOT_OWNER` | Optional owner number automatically included in sudo checks |
 
-- JSON array: SUDO='["+923110470403","+923416181562"]'
-- CSV: SUDO='+1234567890,+1987654321'
-
-The SUDO env is parsed defensively: it accepts JSON arrays or plain lists separated by commas/semicolons/newlines. Numbers are normalized (non-digits removed) and validated by length. Enable debug logging with SUDO_VERBOSE=1 or DEBUG_SUDO=true to see parsing logs.
-
-| BOT_OWNER | (Optional) Owner number — automatically included in SUDO checks when present. Examples: BOT_OWNER='+923110470403' |
+The SUDO variable accepts JSON arrays or plain lists separated by commas, semicolons, or newlines. Numbers are normalized and validated by length. Keep Telegram tokens, OpenAI keys, and WhatsApp authentication data outside Git.
 
 ## Command Categories
 
@@ -118,9 +115,7 @@ The SUDO env is parsed defensively: it accepts JSON arrays or plain lists separa
 
 ## Web Dashboard
 
-Access at `http://localhost:3000`
-
-Default password: `ITACHI-UCHIA`
+Access the dashboard at `http://localhost:3000` locally or at the public Railway URL in production. The **Deploy with Telegram** panel shows the configured Telegram bot link and the live deployment URL. Use `/connect <number>` in Telegram or the website Connect panel; both methods share one persistent WhatsApp session.
 
 ## Changelog
 

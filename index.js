@@ -244,6 +244,41 @@ const tgBot = tgToken ? new TelegramBot(tgToken, {
     }
 }) : null;
 
+let telegramBotLink = '';
+
+function normalizeTelegramUsername(username) {
+    return String(username || '').trim().replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '');
+}
+
+function publicDeploymentUrl() {
+    if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, '');
+    if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+        const domain = process.env.RAILWAY_PUBLIC_DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        return `https://${domain}`;
+    }
+    return '';
+}
+
+async function resolveTelegramBotLink() {
+    if (!tgBot) {
+        telegramBotLink = '';
+        return '';
+    }
+    const configuredUsername = normalizeTelegramUsername(process.env.TELEGRAM_BOT_USERNAME);
+    if (configuredUsername) {
+        telegramBotLink = `https://t.me/${configuredUsername}`;
+        return telegramBotLink;
+    }
+    try {
+        const botInfo = await tgBot.getMe();
+        const username = normalizeTelegramUsername(botInfo?.username);
+        telegramBotLink = username ? `https://t.me/${username}` : '';
+    } catch (error) {
+        console.warn('[Telegram] Unable to resolve bot link:', error.message);
+    }
+    return telegramBotLink;
+}
+
 if (tgBot) {
     tgBot.on('polling_error', (error) => {
         console.log('Telegram polling error:', error.message);
@@ -256,6 +291,7 @@ if (tgBot) {
             tgBot.stopPolling();
         }
     });
+    void resolveTelegramBotLink();
 }
 
 // Import settings
@@ -309,18 +345,42 @@ function isTgOwner(chatId) {
     return chatId.toString() === ownerChatId;
 }
 
+function normalizeWhatsAppNumber(rawNumber) {
+    return String(rawNumber || '').replace(/\D/g, '');
+}
+
+function sessionIdForNumber(cleanNumber) {
+    return `wa_${cleanNumber}`;
+}
+
+function getSessionForNumber(cleanNumber) {
+    const canonicalId = sessionIdForNumber(cleanNumber);
+    if (sessions[canonicalId]) {
+        return { session: sessions[canonicalId], sessionId: canonicalId };
+    }
+
+    const existing = Object.entries(sessions).find(([sessionId, session]) => {
+        return session.phoneNumber === cleanNumber || session.pairingNumber === cleanNumber || String(session.userId) === canonicalId;
+    });
+    if (existing) {
+        return { session: existing[1], sessionId: existing[0] };
+    }
+
+    sessions[canonicalId] = new BotSession(canonicalId);
+    return { session: sessions[canonicalId], sessionId: canonicalId };
+}
+
 async function startTelegramPairing(chatId, rawNumber) {
-    const cleanNumber = String(rawNumber || '').replace(/\D/g, '');
+    const cleanNumber = normalizeWhatsAppNumber(rawNumber);
     if (cleanNumber.length < 10) {
         await tgBot.sendMessage(chatId, 'Invalid number. Send the complete WhatsApp number with country code, for example `923271054080`.', { parse_mode: 'Markdown' });
         return;
     }
 
-    const userId = chatId.toString();
-    if (!sessions[userId]) sessions[userId] = new BotSession(userId);
+    const { session, sessionId } = getSessionForNumber(cleanNumber);
 
-    if (!botData.statusSettings[userId]) {
-        botData.statusSettings[userId] = {
+    if (!botData.statusSettings[sessionId]) {
+        botData.statusSettings[sessionId] = {
             autoStatus: false,
             autoSeen: false,
             autoLike: false,
@@ -330,21 +390,27 @@ async function startTelegramPairing(chatId, rawNumber) {
         saveBotData();
     }
 
-    if (sessions[userId].isInitializing) {
+    if (session.isInitializing) {
         await tgBot.sendMessage(chatId, 'A connection request is already running. Please wait for the current pairing code.', { parse_mode: 'Markdown' });
+        return;
+    }
+
+    if (session.isConnected) {
+        await tgBot.sendMessage(chatId, `This WhatsApp number is already linked and online: \`${session.phoneNumber || cleanNumber}\`.`, { parse_mode: 'Markdown' });
         return;
     }
 
     const initMsg =
         `╭━━〔 *PAIRING REQUEST* 〕━━╮\n` +
         `┃ Number: \`${cleanNumber}\`\n` +
+        `┃ Session: \`${sessionId}\`\n` +
         `┃ Status: generating code...\n` +
         `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
         `Keep this chat open. The code will arrive here shortly.`;
 
     await tgBot.sendMessage(chatId, initMsg, { parse_mode: 'Markdown' });
-    sessions[userId].tgChatId = chatId;
-    await sessions[userId].initialize(cleanNumber);
+    session.tgChatId = chatId;
+    await session.initialize(cleanNumber);
 }
 
 // =================== TELEGRAM BOT (ONLY PAIRING + PREMIUM + OWNER-ONLY STATUS) ===================
@@ -359,6 +425,8 @@ if (tgBot) {
             `╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
             `*Available actions*\n` +
             `• /connect <number> — request a pairing code\n` +
+            `• /link <number> — alias for /connect\n` +
+            `• /deploy — show website and bot links\n` +
             `• Send a number directly — quick connect\n` +
             `• /clearsession — remove your current session\n` +
             `${isOwner ? `• /status — view connected sessions\n` : ''}` +
@@ -383,7 +451,7 @@ if (tgBot) {
     });
 
     // Explicit connection command
-    tgBot.onText(/\/connect(?:\s+(.+))?/, async (msg, match) => {
+    tgBot.onText(/\/(?:connect|link)(?:\s+(.+))?/, async (msg, match) => {
         const rawNumber = match && match[1] ? match[1] : '';
         if (!rawNumber.trim()) {
             await tgBot.sendMessage(msg.chat.id, 'Usage: /connect 923271054080\\nUse the complete number with country code and without the plus sign.', { parse_mode: 'Markdown' });
@@ -392,25 +460,36 @@ if (tgBot) {
         await startTelegramPairing(msg.chat.id, rawNumber);
     });
 
+    // Deployment link command
+    tgBot.onText(/\/deploy/, async (msg) => {
+        const botLink = await resolveTelegramBotLink();
+        const website = publicDeploymentUrl();
+        const message =
+            `*BALI GIL DEPLOYMENT CENTER*\\n\\n` +
+            (website ? `Live website: ${website}\\n` : 'Live website: not configured\\n') +
+            (botLink ? `Telegram bot: ${botLink}\\n\\n` : '\\n') +
+            `Use /connect 923271054080 to request a WhatsApp pairing code.\\n` +
+            `Use /clearsession to remove the Telegram-owned session.`;
+        await tgBot.sendMessage(msg.chat.id, message, { parse_mode: 'Markdown' });
+    });
+
     // Clear Session Command
     tgBot.onText(/\/clearsession/, async (msg) => {
         const chatId = msg.chat.id;
-        const userId = chatId.toString();
-        const legacyUserId = `tg_${chatId}`;
-        const sessionId = sessions[userId] ? userId : legacyUserId;
-        
-        if (sessions[sessionId]) {
-            if (sessions[sessionId].sock) {
-                try { await sessions[sessionId].sock.logout(); } catch(e) {}
+        const owned = Object.entries(sessions).find(([sessionId, session]) => {
+            return String(session.tgChatId || '') === String(chatId) || sessionId === String(chatId) || sessionId === `tg_${chatId}`;
+        });
+
+        if (owned) {
+            const [sessionId, session] = owned;
+            if (session.sock) {
+                try { await session.sock.logout(); } catch (e) {}
             }
-            const authPath = sessions[sessionId].authPath;
-            if (fs.existsSync(authPath)) {
-                fs.removeSync(authPath);
-            }
+            if (fs.existsSync(session.authPath)) fs.removeSync(session.authPath);
             delete sessions[sessionId];
             await tgBot.sendMessage(chatId, `\u{1F5D1}\u{FE0F} *Session cleared!* You can now pair a new number.`, { parse_mode: 'Markdown' });
         } else {
-            await tgBot.sendMessage(chatId, `\u{26A0}\u{FE0F} No active session found to clear.`, { parse_mode: 'Markdown' });
+            await tgBot.sendMessage(chatId, `\u{26A0}\u{FE0F} No active session found for this Telegram chat.`, { parse_mode: 'Markdown' });
         }
     });
 
@@ -535,6 +614,16 @@ app.use(express.static(path.join(__dirname)));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/api/runtime-config', async (req, res) => {
+    const botLink = await resolveTelegramBotLink();
+    res.json({
+        telegramBotLink: botLink || null,
+        telegramConfigured: Boolean(tgBot),
+        publicDeploymentUrl: publicDeploymentUrl() || null,
+        whatsappChannel: settings.whatsappChannel || null
+    });
 });
 
 
@@ -671,6 +760,9 @@ class BotSession {
         this.userChats = {}; 
         this.lastConnectMessageTime = null;
         this.phoneNumber = null;
+        this.pairingNumber = null;
+        this.pairingCode = null;
+        this.pairingExpiresAt = null;
         this.ghostMode = false;
     }
 
@@ -686,7 +778,11 @@ class BotSession {
         if (socketId) {
             io.to(socketId).emit('connection-status', {
                 connected: this.isConnected,
-                user: this.userId
+                user: this.userId,
+                sessionId: this.userId,
+                phoneNumber: this.phoneNumber || null,
+                pairingCode: this.pairingCode || null,
+                pairingExpiresAt: this.pairingExpiresAt || null
             });
         }
         io.emit('total-active', Object.values(sessions).filter(s => s.isConnected).length);
@@ -737,6 +833,7 @@ class BotSession {
             return;
         }
         this.isInitializing = true;
+        if (pairingNumber) this.pairingNumber = normalizeWhatsAppNumber(pairingNumber);
         try {
             const { version } = await fetchLatestBaileysVersion();
             const { state, saveCreds } = await useMultiFileAuthState(this.authPath);
@@ -789,8 +886,11 @@ class BotSession {
                     await delay(3000);
                     try {
                         let code = await this.sock.requestPairingCode(pairingNumber);
-                        code = code?.match(/.{1,4}/g)?.join("-") || code;
+                        code = code?.match(/.{1,4}/g)?.join('-') || code;
+                        this.pairingCode = code;
+                        this.pairingExpiresAt = Date.now() + (60 * 1000);
                         this.sendLog(`\u{1F511} Pairing Code: ${code}`, 'success');
+                        this.sendConnectionStatus();
 
                         if (this.tgChatId && tgBot) {
                             const codeMsg =
@@ -804,7 +904,13 @@ class BotSession {
                         }
 
                         const socketId = userSockets[this.userId];
-                        if (socketId) io.to(socketId).emit('pairing-code', code);
+                        if (socketId) {
+                            io.to(socketId).emit('pairing-code', {
+                                code,
+                                sessionId: this.userId,
+                                expiresAt: this.pairingExpiresAt
+                            });
+                        }
                     } catch (err) {
                         this.sendLog(`\u{274C} Pairing error: ${err.message}`, 'error');
                         const socketId = userSockets[this.userId];
@@ -1339,6 +1445,9 @@ class BotSession {
                     const botNumber = jidNormalizedUser(this.sock.user.id);
                     const botNumberClean = botNumber.split('@')[0];
                     this.phoneNumber = botNumberClean;
+                    this.pairingCode = null;
+                    this.pairingExpiresAt = null;
+                    this.sendConnectionStatus();
 
                     if (!settings.connectedBots.includes(botNumberClean)) {
                         settings.connectedBots.push(botNumberClean);
@@ -1428,27 +1537,41 @@ io.on('connection', (socket) => {
     });
 
     socket.on('set-user', (userId) => {
-        userSockets[userId] = socket.id;
-        if (!sessions[userId]) sessions[userId] = new BotSession(userId);
-        sessions[userId].sendConnectionStatus();
+        const normalizedUserId = String(userId || '').trim();
+        if (!normalizedUserId) return;
+        userSockets[normalizedUserId] = socket.id;
+        socket.userId = normalizedUserId;
+        if (sessions[normalizedUserId]) sessions[normalizedUserId].sendConnectionStatus();
     });
 
-    // Pair request - still available via web for web users
-    socket.on('pair-request', async ({ userId, number } = {}) => {
-        const cleanNumber = String(number || '').replace(/\D/g, '');
-        if (!userId || cleanNumber.length < 10) {
+    // Pair request - shares the same persistent session used by Telegram pairing.
+    socket.on('pair-request', async ({ number } = {}) => {
+        const cleanNumber = normalizeWhatsAppNumber(number);
+        if (cleanNumber.length < 10) {
             socket.emit('pair-error', 'Enter a valid WhatsApp number with country code.');
             return;
         }
 
-        if (!sessions[userId]) sessions[userId] = new BotSession(userId);
-        if (sessions[userId].isInitializing) {
-            socket.emit('pair-error', 'A pairing request is already running for this session.');
+        const { session, sessionId } = getSessionForNumber(cleanNumber);
+        userSockets[sessionId] = socket.id;
+        socket.userId = sessionId;
+
+        if (session.isConnected) {
+            socket.emit('connection-status', {
+                connected: true,
+                user: sessionId,
+                sessionId,
+                phoneNumber: session.phoneNumber || cleanNumber
+            });
+            return;
+        }
+        if (session.isInitializing) {
+            socket.emit('pair-error', 'A pairing request is already running for this WhatsApp number.');
             return;
         }
 
-        if (!botData.statusSettings[userId]) {
-            botData.statusSettings[userId] = {
+        if (!botData.statusSettings[sessionId]) {
+            botData.statusSettings[sessionId] = {
                 autoStatus: false,
                 autoSeen: false,
                 autoLike: false,
@@ -1458,9 +1581,8 @@ io.on('connection', (socket) => {
             saveBotData();
         }
 
-        sessions[userId].tgChatId = null;
         try {
-            await sessions[userId].initialize(cleanNumber);
+            await session.initialize(cleanNumber);
         } catch (error) {
             socket.emit('pair-error', error.message || 'Unable to initialize the WhatsApp connection.');
         }

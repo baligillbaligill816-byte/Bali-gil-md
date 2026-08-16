@@ -341,6 +341,14 @@
   .waiting .dot{width:7px;height:7px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red);animation:blink 1.3s infinite;}
 
   .link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;}
+  .deploy-copy{color:var(--muted);font-size:.8rem;line-height:1.75;margin-bottom:16px;}
+  .deploy-copy strong{color:var(--text);}
+  .deploy-link.disabled{opacity:.5;pointer-events:none;filter:grayscale(.6);}
+  .deploy-note{margin-top:16px;padding:12px 14px;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:.74rem;background:rgba(0,0,0,.18);}
+  .deploy-note.success{color:#9ff5b4;border-color:rgba(57,255,20,.45);}
+  .deploy-note.warning{color:var(--amber);border-color:rgba(243,182,66,.45);}
+  .deploy-note.error{color:var(--danger);border-color:rgba(255,95,114,.45);}
+  .deploy-command{display:inline-block;margin-top:5px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;color:var(--cloud);background:rgba(0,0,0,.3);}
 
   footer{text-align:center;padding:50px 20px;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px;}
   footer span{color:var(--red);}
@@ -407,10 +415,9 @@
     <div class="modal-body">
       <p>// Follow the official channels below to unlock pairing access and receive live updates.</p>
       <div class="channel-list">
-        <a href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank" class="channel-item"><i class="fab fa-whatsapp"></i><span>WhatsApp Channel — Updates</span></a>
-        <a href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank" class="channel-item"><i class="fab fa-whatsapp"></i><span>WhatsApp Channel — Support</span></a>
-        <a href="https://youtube.com/@pubgmobilelibe" target="_blank" class="channel-item"><i class="fab fa-youtube"></i><span>YouTube Channel</span></a>
-        <a href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank" class="channel-item"><i class="fab fa-whatsapp"></i><span>WhatsApp Channel — Announcements</span></a>
+        <a href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank" rel="noopener noreferrer" class="channel-item"><i class="fab fa-whatsapp"></i><span>WhatsApp Channel</span></a>
+        <a href="https://youtube.com/@pubgmobilelibe" target="_blank" rel="noopener noreferrer" class="channel-item"><i class="fab fa-youtube"></i><span>YouTube Channel</span></a>
+        <a id="modalTelegramLink" href="#deploy" class="channel-item"><i class="fab fa-telegram"></i><span>Telegram Deployment Bot</span></a>
       </div>
       <button class="btn" id="confirmFollow"><i class="fas fa-check"></i> I've followed all channels</button>
     </div>
@@ -428,6 +435,7 @@
   <div class="nav-links" id="navLinks">
     <a href="#features">features</a>
     <a href="#connect">connect</a>
+    <a href="#deploy">deploy</a>
     <a href="#links">links</a>
   </div>
   <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
@@ -459,7 +467,7 @@
     <div class="connect-head">
       <div>
         <h2><i class="fas fa-link"></i> Connect your WhatsApp</h2>
-        <p class="panel-lead">Generate a temporary pairing code, link your WhatsApp device, and watch the session status update here in real time.</p>
+        <p class="panel-lead">Generate a temporary pairing code in the browser or use Telegram. Both methods now resolve to the same persistent WhatsApp session, so a link started in one place remains visible in the other.</p>
       </div>
       <div class="connection-chip" id="connectionChip"><span class="chip-dot"></span><span id="connectionLabel">READY TO CONNECT</span></div>
     </div>
@@ -500,13 +508,36 @@
     </div>
   </section>
 
+  <section id="deploy" class="panel" data-label="./deploy">
+    <div class="connect-head">
+      <div>
+        <h2><i class="fab fa-telegram"></i> Deploy with Telegram</h2>
+        <p class="panel-lead">Use the Telegram deployment bot to request a WhatsApp pairing code, monitor the session, and reconnect without keeping this website open.</p>
+      </div>
+      <div class="connection-chip"><span class="chip-dot"></span><span>TELEGRAM CONTROL</span></div>
+    </div>
+    <div class="connect-grid">
+      <div class="connect-card">
+        <div class="card-kicker">TELEGRAM METHOD // RECOMMENDED</div>
+        <p class="deploy-copy"><strong>1.</strong> Open the Telegram bot.<br><strong>2.</strong> Send <span class="deploy-command">/connect 923271054080</span> with your full WhatsApp number.<br><strong>3.</strong> Enter the returned code in WhatsApp → Linked Devices.</p>
+        <a id="telegramDeployLink" class="btn deploy-link disabled" href="#deploy" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i> Telegram Bot Link Unavailable</a>
+      </div>
+      <div class="connect-card">
+        <div class="card-kicker">DEPLOYMENT STATE</div>
+        <p class="deploy-copy">The Telegram token stays on the server. The website only receives a public bot link and deployment URL; no secret is sent to the browser.</p>
+        <a id="publicDeploymentLink" class="btn btn-outline deploy-link disabled" href="#deploy" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe"></i> Open Live Deployment</a>
+        <div id="telegramDeployStatus" class="deploy-note" role="status" aria-live="polite">Checking Telegram deployment configuration...</div>
+      </div>
+    </div>
+  </section>
+
   <section id="links" class="panel" data-label="./links">
     <h2><i class="fas fa-external-link-alt"></i> Links</h2>
     <div class="link-grid">
-      <a class="btn btn-outline" href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Channel</a>
-      <a class="btn btn-outline" href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Channel</a>
-      <a class="btn btn-outline" href="https://youtube.com/@pubgmobilelibe" target="_blank"><i class="fab fa-youtube"></i> YouTube Channel</a>
-      <a class="btn btn-outline" href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Channel</a>
+      <a class="btn btn-outline" href="https://whatsapp.com/channel/0029VbC1gR3J3jv22YgI511b" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i> WhatsApp Channel</a>
+      <a id="linksTelegramLink" class="btn btn-outline deploy-link disabled" href="#deploy" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram"></i> Telegram Deployment Bot</a>
+      <a class="btn btn-outline" href="https://youtube.com/@pubgmobilelibe" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> YouTube Channel</a>
+      <a id="linksDeploymentLink" class="btn btn-outline deploy-link disabled" href="#deploy" target="_blank" rel="noopener noreferrer"><i class="fas fa-globe"></i> Live Deployment</a>
     </div>
   </section>
 </main>
@@ -608,8 +639,8 @@ const resetPairingButton = document.getElementById('resetPairing');
 const connectionChip = document.getElementById('connectionChip');
 const connectionLabel = document.getElementById('connectionLabel');
 const codeTimer = document.getElementById('codeTimer');
-let currentUserId = null;
-let countdownTimer = null;
+  let currentUserId = localStorage.getItem('bali_gil_session_id') || null;
+  let countdownTimer = null;
 
 function setConnectionState(label, state){
   connectionLabel.innerText = label;
@@ -622,10 +653,11 @@ function copyCode(){
   navigator.clipboard.writeText(code.replace(/\s/g,'')).then(()=>showToast('CODE COPIED TO CLIPBOARD!'));
 }
 
-function resetPairing(){
-  if(countdownTimer) clearInterval(countdownTimer);
-  currentUserId = null;
-  phoneInput.value = '';
+  function resetPairing(){
+    if(countdownTimer) clearInterval(countdownTimer);
+    currentUserId = null;
+    localStorage.removeItem('bali_gil_session_id');
+    phoneInput.value = '';
   pairingCode.innerText = '0000 0000';
   pairingCode.style.color = '';
   pairingCode.style.borderColor = '';
@@ -655,13 +687,17 @@ requestBtn.addEventListener('click', ()=>{
   setConnectionState('REQUESTING CODE', '');
   setStatus('Sending a secure pairing request...', 'warning');
 
-  currentUserId = 'user_' + Math.random().toString(36).substr(2,9);
-  socket.emit('set-user', currentUserId);
-  socket.emit('pair-request', { userId: currentUserId, number });
+    socket.emit('pair-request', { number });
 });
 
-socket.on('pairing-code',(code)=>{
-  requestBtn.disabled = false;
+  socket.on('pairing-code',(payload)=>{
+    const code = typeof payload === 'string' ? payload : payload?.code;
+    if(!code) return;
+    if(payload?.sessionId){
+      currentUserId = payload.sessionId;
+      localStorage.setItem('bali_gil_session_id', currentUserId);
+    }
+    requestBtn.disabled = false;
   requestBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pairing Code';
   setConnectionState('CODE READY', '');
   setStatus('Pairing code generated. Enter it in WhatsApp before the timer reaches zero.', 'success');
@@ -688,8 +724,16 @@ socket.on('pair-error',(msg)=>{
   setStatus(msg || 'Failed to generate pairing code. Try again.', 'error');
 });
 
-socket.on('connection-status',(status)=>{
-  if(status && status.connected){
+  socket.on('connect',()=>{
+    if(currentUserId) socket.emit('set-user', currentUserId);
+  });
+
+  socket.on('connection-status',(status)=>{
+    if(status?.sessionId){
+      currentUserId = status.sessionId;
+      localStorage.setItem('bali_gil_session_id', currentUserId);
+    }
+    if(status && status.connected){
     if(countdownTimer) clearInterval(countdownTimer);
     pairingCode.innerText = 'LINKED';
     pairingCode.style.color = '#39ff14';
@@ -701,8 +745,48 @@ socket.on('connection-status',(status)=>{
   }
 });
 
-socket.on('stats', (data)=>{
-  if(data){
+  function setRuntimeLink(elementId, url, readyLabel){
+    const link = document.getElementById(elementId);
+    if(!link) return;
+    if(url){
+      link.href = url;
+      link.classList.remove('disabled');
+      if(readyLabel) link.innerHTML = readyLabel;
+    } else {
+      link.href = '#deploy';
+      link.classList.add('disabled');
+    }
+  }
+
+  async function loadRuntimeConfig(){
+    const status = document.getElementById('telegramDeployStatus');
+    try{
+      const response = await fetch('/api/runtime-config', { headers: { 'Accept': 'application/json' } });
+      if(!response.ok) throw new Error('Runtime configuration unavailable');
+      const config = await response.json();
+      const telegramLabel = '<i class="fab fa-telegram"></i> Open Telegram Deployment Bot';
+      const deploymentLabel = '<i class="fas fa-globe"></i> Open Live Deployment';
+      setRuntimeLink('telegramDeployLink', config.telegramBotLink, telegramLabel);
+      setRuntimeLink('linksTelegramLink', config.telegramBotLink, telegramLabel);
+      setRuntimeLink('modalTelegramLink', config.telegramBotLink, '<i class="fab fa-telegram"></i><span>Telegram Deployment Bot</span>');
+      setRuntimeLink('publicDeploymentLink', config.publicDeploymentUrl, deploymentLabel);
+      setRuntimeLink('linksDeploymentLink', config.publicDeploymentUrl, deploymentLabel);
+      if(config.telegramBotLink){
+        status.innerText = 'Telegram deployment is configured. Use /connect with your WhatsApp number to link the shared session.';
+        status.className = 'deploy-note success';
+      }else{
+        status.innerText = 'Telegram deployment is not configured yet. Set TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_USERNAME in Railway variables, then redeploy.';
+        status.className = 'deploy-note warning';
+      }
+    }catch(error){
+      status.innerText = 'Unable to read deployment configuration. The browser pairing flow is still available.';
+      status.className = 'deploy-note error';
+    }
+  }
+  loadRuntimeConfig();
+
+  socket.on('stats', (data)=>{
+    if(data){
     if(typeof data.activeSockets !== 'undefined') document.getElementById('activeSockets').innerText = data.activeSockets;
     if(typeof data.totalUsers !== 'undefined') document.getElementById('totalUsers').innerText = data.totalUsers;
   }
