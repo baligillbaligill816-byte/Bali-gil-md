@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-This bot includes a Docker-based Railway deployment configuration. Railway uses the repository `railway.toml` file and `Dockerfile` automatically when a deployment is triggered from this repository.
+This bot includes a Docker-based Railway deployment configuration. Railway uses the repository `railway.json` file and `Dockerfile` when a deployment is triggered from this repository. The repository intentionally keeps one canonical Railway config to avoid TOML/JSON conflicts.
 
 ## Required Railway variables
 
@@ -18,7 +18,7 @@ Railway provides the `PORT` variable automatically. The application listens on `
 1. Create a new Railway project and deploy this GitHub repository.
 2. Confirm that the service uses the repository root as its source directory.
 3. Add the required variables in the Railway service Variables panel.
-4. Trigger a deployment. Railway will use the Dockerfile selected by `railway.toml`.
+4. Trigger a deployment. Railway will use the Dockerfile selected by `railway.json`.
 5. Verify that the deployment logs show the server listening on the assigned port.
 
 The configured health check is `GET /health`. A successful response is HTTP `200 OK` with body `OK`.
@@ -33,4 +33,4 @@ Railway container storage is ephemeral. Without a persistent volume or an extern
 
 ## Security
 
-Keep `.env`, Telegram tokens, OpenAI keys, and WhatsApp authentication data outside Git. If any credentials were previously committed, rotate them and remove the secrets from the repository history.
+Keep `.env`, Telegram tokens, OpenAI keys, and WhatsApp authentication data outside Git. If any credentials were previously committed, rotate them and remove the secrets from the repository history. Baileys is pinned in `package.json` and `package-lock.json` to the tested version so a future `latest` release cannot change the deployment unexpectedly.

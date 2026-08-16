@@ -3,4 +3,3 @@ auth_info
 data/*.json
 .env
 *.log
-package-lock.json
